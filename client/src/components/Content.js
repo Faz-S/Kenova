@@ -12,6 +12,7 @@ import AINotes from './AINotes';
 import AISummary from './AISummary';
 import AIKeypoints from './AIKeypoints';
 import AIFlashcards from './AIFlashcards';
+import AIQuiz from './AIQuiz';
 import './Content.css';
 
 function Content() {
@@ -282,24 +283,7 @@ function Content() {
             case 'keypoints':
                 return <AIKeypoints uploadedFile={selectedFile} />;
             case 'quiz':
-                return (
-                    <div className="coming-soon-container">
-                        <div className="coming-soon-content">
-                            <div className="coming-soon-emoji">🧩</div>
-                            <h2>Quiz Mode: Loading That Heat! 🔥</h2>
-                            <p>Bestie, get ready to slay these quizzes with:</p>
-                            <div className="feature-list">
-                                <div className="feature-item">🎯 Pop off with perfect scores</div>
-                                <div className="feature-item">🧠 Big brain energy only</div>
-                                <div className="feature-item">💫 Main character moment</div>
-                                <div className="feature-item">✨ We ate and left no crumbs</div>
-                            </div>
-                            <div className="coming-soon-footer">
-                                About to be iconic, no cap! 👑
-                            </div>
-                        </div>
-                    </div>
-                );
+                return <AIQuiz uploadedFile={selectedFile} />;
             default:
                 return null;
         }

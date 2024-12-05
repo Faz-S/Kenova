@@ -41,7 +41,7 @@ const AIKeypoints = ({ uploadedFile }) => {
                 const trimmed = line.trim().toLowerCase();
                 return !(
                     trimmed.startsWith("here's a breakdown") ||
-                    trimmed.startsWith("here's a last minute guide") ||
+                    trimmed === "here's a last-minute revision guide based on the provided document:" ||
                     trimmed.startsWith("here's the keypoints")
                 );
             });
@@ -50,35 +50,46 @@ const AIKeypoints = ({ uploadedFile }) => {
 
             // Process the filtered lines into sections
             const sections = [];
-            if (!lines.some(line => line.includes(':'))) {
-                sections.push({
-                    title: 'Key Points',
-                    points: [lines.join(' ').trim()],
-                });
-            } else {
-                let currentSection = null;
+            let currentSection = null;
 
-                for (const line of lines) {
-                    const trimmedLine = line.trim();
+            for (const line of lines) {
+                const trimmedLine = line.trim();
+                
+                // Skip empty lines
+                if (!trimmedLine) continue;
 
-                    if (trimmedLine.includes(':')) {
-                        // This is a section header
-                        const [title, ...contentParts] = trimmedLine.split(':');
-                        const content = contentParts.join(':').trim();
-
-                        currentSection = {
-                            title: title.trim(),
-                            points: [],
-                        };
-                        sections.push(currentSection);
-
-                        if (content) {
-                            currentSection.points.push(content);
-                        }
-                    } else if (currentSection && trimmedLine) {
-                        // This is content for the current section
+                // Check if line is a section header (starts with number or has ':' at the end)
+                if (/^\d+\./.test(trimmedLine) || trimmedLine.endsWith(':')) {
+                    currentSection = {
+                        title: trimmedLine.replace(/^\d+\.\s*/, '').replace(/:$/, ''),
+                        points: []
+                    };
+                    sections.push(currentSection);
+                } else if (trimmedLine.includes(':')) {
+                    // Handle subsection headers (contains ':' in the middle)
+                    const [title, ...contentParts] = trimmedLine.split(':');
+                    const content = contentParts.join(':').trim();
+                    
+                    currentSection = {
+                        title: title.trim(),
+                        points: content ? [content] : []
+                    };
+                    sections.push(currentSection);
+                } else if (currentSection) {
+                    // Add content to current section
+                    if (trimmedLine.startsWith('*') || trimmedLine.startsWith('-')) {
+                        // Handle bullet points
+                        currentSection.points.push(trimmedLine.replace(/^[\*\-]\s*/, '').trim());
+                    } else {
                         currentSection.points.push(trimmedLine);
                     }
+                } else {
+                    // If no section exists, create a default one
+                    currentSection = {
+                        title: 'Key Points',
+                        points: [trimmedLine]
+                    };
+                    sections.push(currentSection);
                 }
             }
 

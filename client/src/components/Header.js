@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 
 function Header() {
     const [isEditing, setIsEditing] = useState(false);
-    const [title, setTitle] = useState('Earth Wiki Session');
+    const [title, setTitle] = useState('Education');
 
     const handleTitleEdit = () => {
         setIsEditing(true);

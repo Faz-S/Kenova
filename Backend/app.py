@@ -1,4 +1,3 @@
-
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 from content_processor import ContentProcessor
@@ -114,6 +113,10 @@ def summary():
 def keypoints():
     return render_template('keypoints.html')
 
+@app.route('/quiz')
+def quiz():
+    return render_template('quiz.html')
+
 @app.route('/process/<action>', methods=['POST'])
 def process_action(action):
     try:
@@ -189,8 +192,8 @@ def process_action(action):
             "keypoints": """
                             Analyze the provided file and generate a comprehensive last-minute revision guide, ensuring the following structure:
 
-                            Headings and Two-Liner Summaries:
-                                For each heading or subheading, provide a two-line summary that captures the core essence of that section.
+                            Headings and Two-Liner Summaries(dont include this(wordings) in your response):
+                                For each heading or subheadingin the file provided, provide a two-line summary that captures the core essence of that section.
                                 The two-liner should succinctly explain the topic, including key concepts, critical points, and important details, ensuring that no significant information is left out.
                             Example format:
                                 Machine Learning:
@@ -202,10 +205,47 @@ def process_action(action):
                             Organization:
                                 The output should be well-organized and easy to scan. Ensure that each heading and subheading is followed by its two-liner summary.
                                 The content should be structured clearly, making it easy for students to revise and grasp key concepts quickly before exams.
-
+                            Clarity and Simplicity:
+                                Ensure the content is clear, concise, and free of redundancy.
                             Ensure all topics are covered effectively, with no heading or formula overlooked.
-                        """    }
+                        """    ,
+            "quiz": """
+               Analyze the provided file and generate at least 10 multiple-choice questions (MCQs) in strict JSON format. 
+               Each question MUST follow this exact structure:
+               {
+                   "question": "A clear, concise question based on key concepts from the file",
+                   "options": {
+                       "A": "First option text",
+                       "B": "Second option text", 
+                       "C": "Third option text",
+                       "D": "Fourth option text"
+                   },
+                   "correct_answer": "The letter of the correct option (A, B, C, or D)"
+                   "explanation": "An explanation of the correct answer and how it relates to the question"
+               }
 
+               Guidelines:
+               - Generate questions that cover different aspects of the document
+               - Ensure questions are challenging but fair
+               - Provide plausible distractors for incorrect options
+               - If no clear content is available, return a JSON array with an error message object
+
+               Example output:
+               [
+                   {
+                       "question": "What is the primary purpose of machine learning?",
+                       "options": {
+                           "A": "To replace human programmers",
+                           "B": "To learn and improve from data",
+                           "C": "To create complex algorithms",
+                           "D": "To generate random predictions"
+                       },
+                       "correct_answer": "B"
+                       "explanation": "Machine learning uses data to learn patterns and make predictions without being explicitly programmed."
+                   }
+               ]
+               """
+        }
         if action not in prompts:
             return jsonify({"error": f"Invalid action '{action}'"}), 400
 
