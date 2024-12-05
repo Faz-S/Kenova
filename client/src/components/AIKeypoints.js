@@ -1,13 +1,12 @@
-
 import React, { useState, useEffect } from 'react';
-import './AINotes.css';
+import './AIKeypoints.css';
 
-const AINotes = ({ uploadedFile }) => {
-    const [notes, setNotes] = useState(null);
+const AIKeypoints = ({ uploadedFile }) => {
+    const [keypoints, setKeypoints] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
 
-    const fetchNotes = async () => {
+    const fetchKeypoints = async () => {
         if (!uploadedFile) return;
 
         setIsLoading(true);
@@ -17,13 +16,13 @@ const AINotes = ({ uploadedFile }) => {
             const formData = new FormData();
             formData.append('file', uploadedFile);
 
-            const response = await fetch('http://localhost:5001/process/notes', {
+            const response = await fetch('http://localhost:5001/process/keypoints', {
                 method: 'POST',
                 body: formData,
             });
 
             if (!response.ok) {
-                throw new Error('Failed to fetch notes');
+                throw new Error('Failed to fetch keypoints');
             }
 
             const data = await response.json();
@@ -33,16 +32,17 @@ const AINotes = ({ uploadedFile }) => {
                 throw new Error('Invalid response format');
             }
 
-            const responseText = data.response.trim();
-            console.log('Response text:', responseText);
+            // Remove all asterisks from the response text
+            const responseText = data.response.trim().replace(/\*/g, '');
+            console.log('Response text without asterisks:', responseText);
 
-            // Filter out the introductory paragraph
+            // Filter out introductory text
             const lines = responseText.split('\n').filter(line => {
                 const trimmed = line.trim().toLowerCase();
                 return !(
                     trimmed.startsWith("here's a breakdown") ||
-                    trimmed.startsWith("here are the notes") 
-            
+                    trimmed.startsWith("here's a last minute guide") ||
+                    trimmed.startsWith("here's the keypoints")
                 );
             });
 
@@ -52,14 +52,14 @@ const AINotes = ({ uploadedFile }) => {
             const sections = [];
             if (!lines.some(line => line.includes(':'))) {
                 sections.push({
-                    title: 'Overview',
-                    points: [lines.join(' ').replace(/\*\*/g, '').trim()],
+                    title: 'Key Points',
+                    points: [lines.join(' ').trim()],
                 });
             } else {
                 let currentSection = null;
 
                 for (const line of lines) {
-                    const trimmedLine = line.trim().replace(/\*\*/g, ''); // Remove asterisks
+                    const trimmedLine = line.trim();
 
                     if (trimmedLine.includes(':')) {
                         // This is a section header
@@ -75,7 +75,7 @@ const AINotes = ({ uploadedFile }) => {
                         if (content) {
                             currentSection.points.push(content);
                         }
-                    } else if (currentSection) {
+                    } else if (currentSection && trimmedLine) {
                         // This is content for the current section
                         currentSection.points.push(trimmedLine);
                     }
@@ -83,10 +83,10 @@ const AINotes = ({ uploadedFile }) => {
             }
 
             console.log('Final processed sections:', sections);
-            setNotes(sections);
+            setKeypoints(sections);
         } catch (error) {
-            console.error('Error fetching notes:', error);
-            setError('Failed to load notes. Please try again.');
+            console.error('Error fetching keypoints:', error);
+            setError('Failed to load keypoints. Please try again.');
         } finally {
             setIsLoading(false);
         }
@@ -94,24 +94,24 @@ const AINotes = ({ uploadedFile }) => {
 
     useEffect(() => {
         if (uploadedFile) {
-            fetchNotes();
+            fetchKeypoints();
         }
     }, [uploadedFile]);
 
     if (isLoading) {
         return (
-            <div className="notes-loading">
+            <div className="keypoints-loading">
                 <div className="loading-spinner"></div>
-                <p>Generating AI Notes...</p>
+                <p>Generating Key Points...</p>
             </div>
         );
     }
 
     if (error) {
         return (
-            <div className="notes-error">
+            <div className="keypoints-error">
                 <p>{error}</p>
-                <button onClick={fetchNotes} className="retry-button">
+                <button onClick={fetchKeypoints} className="retry-button">
                     Try Again
                 </button>
             </div>
@@ -121,20 +121,20 @@ const AINotes = ({ uploadedFile }) => {
     if (!uploadedFile) {
         return (
             <div className="no-file-message">
-                <p>Upload a file to generate AI-powered notes</p>
+                <p>Upload a file to generate key points</p>
             </div>
         );
     }
 
     return (
-        <div className="ai-notes">
-            {notes && notes.length > 0 ? (
-                notes.map((section, index) => (
-                    <div key={index} className="note-section">
+        <div className="ai-keypoints">
+            {keypoints && keypoints.length > 0 ? (
+                keypoints.map((section, index) => (
+                    <div key={index} className="keypoints-section">
                         <h2 className="section-title">{section.title}</h2>
-                        <ul className="note-points">
+                        <ul className="keypoints-points">
                             {section.points.map((point, pointIndex) => (
-                                <li key={pointIndex} className="note-point">{point}</li>
+                                <li key={pointIndex} className="keypoint-point">{point}</li>
                             ))}
                         </ul>
                         <button className="explain-more-button">
@@ -144,12 +144,12 @@ const AINotes = ({ uploadedFile }) => {
                     </div>
                 ))
             ) : (
-                <div className="no-notes-message">
-                    <p>No notes available for this file yet.</p>
+                <div className="no-keypoints-message">
+                    <p>No key points available for this file yet.</p>
                 </div>
             )}
         </div>
     );
 };
 
-export default AINotes;
+export default AIKeypoints;

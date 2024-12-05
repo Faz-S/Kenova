@@ -41,8 +41,8 @@ const AISummary = ({ uploadedFile }) => {
                 const trimmed = line.trim().toLowerCase();
                 return !(
                     trimmed.startsWith("here's a breakdown") ||
-                    trimmed.includes("provided document") ||
-                    trimmed.includes("formatted as requested")
+                    trimmed.startsWith("here's a summary") ||
+                    trimmed.startsWith("here's the summary")
                 );
             });
 

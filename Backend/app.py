@@ -148,7 +148,7 @@ def process_action(action):
                          Strictyly dont provide the introductory paragraph as heres a break down and similar to that be oin context start your response from the overview
                     """,
 
-            "flashcards" :  """
+            "flashcards":  """
                                 Analyze the entire content of the provided file and generate as many flashcards as possible, covering all key concepts, definitions, terms, important details, and examples. Be thorough in extracting and identifying all concepts from every section to ensure complete coverage of the material.
 
                                 Each flashcard must follow this schema:

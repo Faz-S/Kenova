@@ -10,6 +10,8 @@ import UploadSuccess from './UploadSuccess';
 import AIAssistant from './AIAssistant';
 import AINotes from './AINotes';
 import AISummary from './AISummary';
+import AIKeypoints from './AIKeypoints';
+import AIFlashcards from './AIFlashcards';
 import './Content.css';
 
 function Content() {
@@ -276,24 +278,9 @@ function Content() {
             case 'summary':
                 return <AISummary uploadedFile={selectedFile} />;
             case 'flashcards':
-                return (
-                    <div className="coming-soon-container">
-                        <div className="coming-soon-content">
-                            <div className="coming-soon-emoji">🎴</div>
-                            <h2>Flashcards? More like Flash-SLAY! ✨</h2>
-                            <p>Get ready to level up your study game with:</p>
-                            <div className="feature-list">
-                                <div className="feature-item">💫 Living rent-free in your brain</div>
-                                <div className="feature-item">🎭 Front side? Back side? Both iconic</div>
-                                <div className="feature-item">🔄 Swipe right on knowledge</div>
-                                <div className="feature-item">🎯 No thoughts, just straight facts</div>
-                            </div>
-                            <div className="coming-soon-footer">
-                                This update? Literally gonna be everything! 💅
-                            </div>
-                        </div>
-                    </div>
-                );
+                return <AIFlashcards uploadedFile={selectedFile} />;
+            case 'keypoints':
+                return <AIKeypoints uploadedFile={selectedFile} />;
             case 'quiz':
                 return (
                     <div className="coming-soon-container">
@@ -323,6 +310,7 @@ function Content() {
         { id: 'notes', label: 'Smart Notes' },
         { id: 'summary', label: 'AI Summary' },
         { id: 'flashcards', label: 'Flashcards' },
+        { id: 'keypoints', label: 'AI Keypoints' },
         { id: 'quiz', label: 'Quiz Me' }
     ];
 
