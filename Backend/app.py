@@ -1,3 +1,4 @@
+
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 from content_processor import ContentProcessor
@@ -18,7 +19,6 @@ processor = ContentProcessor(api_key=os.getenv("GOOGLE_API_KEY"), cursor=cursor,
 
 cache = {}
 
-
 def process_file_request(file_path, prompt):
     global cache
     try:
@@ -33,40 +33,36 @@ def process_file_request(file_path, prompt):
             print("Reusing previously processed file.")
         else:
             def is_youtube_url(url):
-                return re.match(r"(https?://)?(www\.)?(youtube\.com|youtu\.be)/.+", url)
+                return re.match(r"(https?://)?(www\\.)?(youtube\\.com|youtu\\.be)/.+", url)
 
             if is_youtube_url(file_path):
                 file_type = "video"
                 sanitized_url = re.sub(r'[^a-zA-Z0-9]', '_', file_path)
-                half_path= r"AI"
-                check_file_path = half_path+f"\db\downloaded_video_{sanitized_url}.mp4"
-                # check_file_path = f"db/downloaded_video_{sanitized_url}.mp4"
-                print(check_file_path)
+                half_path = r"AI"
+                check_file_path = half_path + f"\\db\\downloaded_video_{sanitized_url}.mp4"
             else:
                 file_type = processor.file_handler.determine_file_type(file_path)
                 check_file_path = file_path
 
-            cursor.execute("SELECT file_path, uploaded, upload_id FROM files WHERE file_path = %s", ( check_file_path ,))
+            cursor.execute("SELECT file_path, uploaded, upload_id FROM files WHERE file_path = %s", (check_file_path,))
             existing_file = cursor.fetchone()
-            print(existing_file)
 
             if existing_file:
                 print("Reusing previously processed file.")
                 full_file_path = existing_file[0]
                 upload_id = existing_file[2]
-                uploaded_file = genai.get_file(upload_id)            
+                uploaded_file = genai.get_file(upload_id)
             else:
                 print("Processing new file.")
-                uploaded_file, file_type, full_file_path,upload_id = processor.upload_file(file_path)
+                uploaded_file, file_type, full_file_path, upload_id = processor.upload_file(file_path)
                 if not uploaded_file:
                     return {"error": "File upload/processing failed"}, 500
 
                 cursor.execute(
-                    "INSERT INTO files (file_path, file_type, uploaded, upload_id) VALUES (%s, %s, %s,%s)",
+                    "INSERT INTO files (file_path, file_type, uploaded, upload_id) VALUES (%s, %s, %s, %s)",
                     (full_file_path, file_type, True, upload_id)
                 )
                 conn.commit()
-
 
             cache[file_path] = {
                 "uploaded_file": uploaded_file,
@@ -88,56 +84,67 @@ def process_file_request(file_path, prompt):
     except Exception as e:
         return {"error": str(e)}, 500
 
-@app.route('/qa')
-def qa():
-    return render_template('rag.html')
+# @app.route('/qa', methods=['POST'])
+# def qa():
+#     file = request.files.get('file')
+#     question = request.form.get('question')
 
+#     if not file or not question:
+#         return jsonify({"error": "File or question is missing"}), 400
+
+#     file_path = file.filename
+#     file.save(file_path)
+
+#     response, status_code = process_file_request(file_path, question)
+#     return jsonify(response), status_code
 
 @app.route('/note')
 def note():
     return render_template('notes.html')
 
-
 @app.route('/flash')
 def flash():
     return render_template('flashcard.html')
-
 
 @app.route('/sum')
 def summary():
     return render_template('summary.html')
 
-
 @app.route('/key')
 def keypoints():
     return render_template('keypoints.html')
 
-
 @app.route('/process/<action>', methods=['POST'])
 def process_action(action):
     try:
-        data = request.get_json()
-        file_path = data.get("file_path")
+        file = request.files.get('file')
+        question = request.form.get('question')
+
+        if not file:
+            return jsonify({"error": "File is missing"}), 400
+
+        file_path = file.filename
+        file_path = "uploads/"+ file_path 
+        file.save(file_path)
 
         prompts = {
-            "rag": data.get("prompt", "Enter a specific prompt for QA"),
-
+            "qa": question,
             "notes": """
-                        Analyze the provided document and generate detailed, well-organized smart notes that provide a thorough breakdown of the content. Ensure the notes are structured and informative, while capturing the essence of the document. The notes should include the following sections:
+                         Analyze the provided document and generate detailed, well-organized smart notes that provide a thorough breakdown of the content. Ensure the notes are structured and informative, while capturing the essence of the document. The notes should include the following sections:
 
-                        Overview:
-                                A high-level summary of the content, outlining the main topics and objectives. Provide a clear understanding of the purpose and scope of the material, offering context for the reader.
-                        Key Concepts:
-                                A comprehensive list of the most important ideas, terms, or topics discussed in the document. For each concept, include a detailed explanation that clarifies its meaning, relevance, and relationship to other concepts in the document.
-                        Critical Points:
-                                A summary of essential takeaways, key facts, and examples that are crucial for understanding the material. Emphasize important details that students must grasp, such as unique insights, data, or case studies.
-                        Application:
-                                Provide detailed notes on how the concepts and critical points can be applied in real-world contexts or exams. Offer practical examples, potential use cases, or scenarios where these ideas might be relevant or tested.
-                        Additional Insights:
-                                Include any additional important information, such as potential pitfalls, common misconceptions, or advanced topics that provide a deeper understanding of the subject.
+                         Overview:
+                                 A high-level summary of the content, outlining the main topics and objectives. Provide a clear understanding of the purpose and scope of the material, offering context for the reader.
+                         Key Concepts:
+                                 A comprehensive list of the most important ideas, terms, or topics discussed in the document. For each concept, include a detailed explanation that clarifies its meaning, relevance, and relationship to other concepts in the document.
+                         Critical Points:
+                                 A summary of essential takeaways, key facts, and examples that are crucial for understanding the material. Emphasize important details that students must grasp, such as unique insights, data, or case studies.
+                         Application:
+                                 Provide detailed notes on how the concepts and critical points can be applied in real-world contexts or exams. Offer practical examples, potential use cases, or scenarios where these ideas might be relevant or tested.
+                         Additional Insights:
+                                 Include any additional important information, such as potential pitfalls, common misconceptions, or advanced topics that provide a deeper understanding of the subject.
 
-                        the notes should contain all the topics listed above without leaving any headings above 
-                        Ensure the notes are clear, concise, and easy to scan. Prioritize critical information while making sure that every section is well-explained and free of redundancy.
+                         the notes should contain all the topics listed above without leaving any headings above 
+                         Ensure the notes are clear, concise, and easy to scan. Prioritize critical information while making sure that every section is well-explained and free of redundancy.
                     """,
 
             "flashcards" :  """
@@ -196,19 +203,17 @@ def process_action(action):
                                 The content should be structured clearly, making it easy for students to revise and grasp key concepts quickly before exams.
 
                             Ensure all topics are covered effectively, with no heading or formula overlooked.
-                        """
-        }
+                        """    }
 
-        prompt = prompts.get(action, "Invalid action")
-        if prompt == "Invalid action":
-            return jsonify({"error": "Invalid action"}), 400
+        if action not in prompts:
+            return jsonify({"error": f"Invalid action '{action}'"}), 400
 
+        prompt = prompts[action]
         response, status_code = process_file_request(file_path, prompt)
         return jsonify(response), status_code
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5001)

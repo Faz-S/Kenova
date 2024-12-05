@@ -7,6 +7,8 @@ import { renderAsync } from 'docx-preview';
 import '@react-pdf-viewer/core/lib/styles/index.css';
 import '@react-pdf-viewer/default-layout/lib/styles/index.css';
 import UploadSuccess from './UploadSuccess';
+import AIAssistant from './AIAssistant';
+import './Content.css';
 
 function Content() {
     const [activeTab, setActiveTab] = useState('original');
@@ -119,7 +121,7 @@ function Content() {
     const renderFilePreview = () => {
         if (previewError) {
             return (
-                <div className="preview-error">
+                <div className="preview-content error">
                     <p>😕 {previewError}</p>
                 </div>
             );
@@ -130,7 +132,7 @@ function Content() {
         switch (fileType) {
             case 'pdf':
                 return (
-                    <div className="pdf-viewer">
+                    <div className="preview-content">
                         <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.4.120/build/pdf.worker.min.js">
                             <Viewer
                                 fileUrl={fileContent}
@@ -146,7 +148,7 @@ function Content() {
             case 'mov':
             case 'avi':
                 return (
-                    <div className="video-player">
+                    <div className="preview-content">
                         <ReactPlayer
                             url={fileContent}
                             controls={true}
@@ -177,7 +179,7 @@ function Content() {
             case 'odt':
             case 'rtf':
                 return (
-                    <div className="doc-preview" dangerouslySetInnerHTML={{ __html: fileContent }} />
+                    <div className="preview-content" dangerouslySetInnerHTML={{ __html: fileContent }} />
                 );
 
             case 'txt':
@@ -186,14 +188,14 @@ function Content() {
             case 'css':
             case 'html':
                 return (
-                    <div className="text-preview">
+                    <div className="preview-content">
                         <pre>{fileContent}</pre>
                     </div>
                 );
 
             default:
                 return (
-                    <div className="unsupported-preview">
+                    <div className="preview-content">
                         <p>✨ This file type isn't supported yet!</p>
                         <p>Try uploading a PDF, DOC, DOCX, ODT, RTF, TXT, or video file</p>
                     </div>
@@ -201,104 +203,175 @@ function Content() {
         }
     };
 
+    const renderTabContent = () => {
+        switch (activeTab) {
+            case 'original':
+                return (
+                    <div className="main-content-wrapper">
+                        <div className="main-content">
+                            {!fileContent ? (
+                                <div className={`upload-section ${isDragging ? 'dragging' : ''}`}
+                                    onDragEnter={handleDragEnter}
+                                    onDragOver={(e) => e.preventDefault()}
+                                    onDragLeave={handleDragLeave}
+                                    onDrop={handleDrop}
+                                >
+                                    <div className="upload-container">
+                                        <input
+                                            type="file"
+                                            id="file-upload"
+                                            className="file-input"
+                                            onChange={handleFileInput}
+                                            accept=".pdf,.doc,.docx,.odt,.rtf,.txt,.mp4,.webm,.ogg,.mov,.avi,.json,.js,.css,.html"
+                                            style={{ display: 'none' }}
+                                        />
+                                        <label htmlFor="file-upload" className="upload-label">
+                                            <div className="upload-icon">
+                                                {isDragging ? '✨' : '📥'}
+                                            </div>
+                                            <h3>Drop Your Content Here!</h3>
+                                            <p className="upload-text">
+                                                {isDragging 
+                                                    ? "Yasss! Drop it like it's hot 🔥" 
+                                                    : "Drag & drop or tap to level up ⚡️"}
+                                            </p>
+                                            <div className="file-types-grid">
+                                                <span className="file-type-tag">📄 PDFs</span>
+                                                <span className="file-type-tag">📝 Docs</span>
+                                                <span className="file-type-tag">📹 Videos</span>
+                                                <span className="file-type-tag">📋 Text</span>
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="file-preview-container">
+                                    <div className="preview-header">
+                                        <h3>📑 {selectedFile.name}</h3>
+                                        <button 
+                                            className="close-preview" 
+                                            onClick={() => {
+                                                setFileContent(null);
+                                                setSelectedFile(null);
+                                                setFileType(null);
+                                                setPreviewError(null);
+                                            }}
+                                        >
+                                            ❌
+                                        </button>
+                                    </div>
+                                    {renderFilePreview()}
+                                </div>
+                            )}
+                        </div>
+                        <div className="ai-assistant-wrapper">
+                            <AIAssistant uploadedFile={selectedFile} />
+                        </div>
+                    </div>
+                );
+            case 'notes':
+                return (
+                    <div className="coming-soon-container">
+                        <div className="coming-soon-content">
+                            <div className="coming-soon-emoji">✍️</div>
+                            <h2>AI Notes Coming Soon!</h2>
+                            <p>Bestie, get ready for some mind-blowing AI notes! We're cooking up something that's gonna be:</p>
+                            <div className="feature-list">
+                                <div className="feature-item">🚀 Absolutely bussin'</div>
+                                <div className="feature-item">💅 Aesthetic AF</div>
+                                <div className="feature-item">🧠 Big brain energy</div>
+                                <div className="feature-item">✨ No cap, just facts</div>
+                            </div>
+                            <div className="coming-soon-footer">
+                                Stay tuned, it's gonna be fire! 🔥
+                            </div>
+                        </div>
+                    </div>
+                );
+            case 'summary':
+                return (
+                    <div className="coming-soon-container">
+                        <div className="coming-soon-content">
+                            <div className="coming-soon-emoji">📝</div>
+                            <h2>AI Summary Loading...</h2>
+                            <p>Bestie, we're about to drop the hottest summaries fr fr!</p>
+                            <div className="feature-list">
+                                <div className="feature-item">💫 TL;DR but make it fancy</div>
+                                <div className="feature-item">🎯 Zero fluff, all facts</div>
+                                <div className="feature-item">🌈 Vibe check: immaculate</div>
+                                <div className="feature-item">💅 Main character energy</div>
+                            </div>
+                            <div className="coming-soon-footer">
+                                It's gonna hit different! 💁‍♀️
+                            </div>
+                        </div>
+                    </div>
+                );
+            case 'flashcards':
+                return (
+                    <div className="coming-soon-container">
+                        <div className="coming-soon-content">
+                            <div className="coming-soon-emoji">🎴</div>
+                            <h2>Flashcards? More like Flash-SLAY! ✨</h2>
+                            <p>Get ready to level up your study game with:</p>
+                            <div className="feature-list">
+                                <div className="feature-item">💫 Living rent-free in your brain</div>
+                                <div className="feature-item">🎭 Front side? Back side? Both iconic</div>
+                                <div className="feature-item">🔄 Swipe right on knowledge</div>
+                                <div className="feature-item">🎯 No thoughts, just straight facts</div>
+                            </div>
+                            <div className="coming-soon-footer">
+                                This update? Literally gonna be everything! 💅
+                            </div>
+                        </div>
+                    </div>
+                );
+            case 'quiz':
+                return (
+                    <div className="coming-soon-container">
+                        <div className="coming-soon-content">
+                            <div className="coming-soon-emoji">🧩</div>
+                            <h2>Quiz Mode: Loading That Heat! 🔥</h2>
+                            <p>Bestie, get ready to slay these quizzes with:</p>
+                            <div className="feature-list">
+                                <div className="feature-item">🎯 Pop off with perfect scores</div>
+                                <div className="feature-item">🧠 Big brain energy only</div>
+                                <div className="feature-item">💫 Main character moment</div>
+                                <div className="feature-item">✨ We ate and left no crumbs</div>
+                            </div>
+                            <div className="coming-soon-footer">
+                                About to be iconic, no cap! 👑
+                            </div>
+                        </div>
+                    </div>
+                );
+            default:
+                return null;
+        }
+    };
+
+    const tabs = [
+        { id: 'original', label: 'Original' },
+        { id: 'notes', label: 'Smart Notes' },
+        { id: 'summary', label: 'AI Summary' },
+        { id: 'flashcards', label: 'Flashcards' },
+        { id: 'quiz', label: 'Quiz Me' }
+    ];
+
     return (
-        <div className="content">
-            <nav className="content-nav">
-                {[
-                    { id: 'original', label: ' Original', icon: '📄' },
-                    { id: 'notes', label: 'Smart Notes', icon: '✍️' },
-                    { id: 'summary', label: 'AI Summary', icon: '📝' },
-                    { id: 'flashcards', label: 'Flashcards', icon: '🎯' },
-                    { id: 'quiz', label: 'Quiz Me', icon: '🧠' }
-                ].map(tab => (
+        <div className="content-container">
+            <nav className="tabs">
+                {tabs.map((tab) => (
                     <button
                         key={tab.id}
-                        className={`nav-btn ${activeTab === tab.id ? 'active' : ''}`}
+                        className={`tab ${activeTab === tab.id ? 'active' : ''}`}
                         onClick={() => setActiveTab(tab.id)}
                     >
-                        <span className="nav-icon">{tab.icon}</span>
                         {tab.label}
                     </button>
                 ))}
             </nav>
-
-            <div className="main-content">
-                {!fileContent ? (
-                    <div className={`upload-section ${isDragging ? 'dragging' : ''}`}
-                        onDragEnter={handleDragEnter}
-                        onDragOver={(e) => e.preventDefault()}
-                        onDragLeave={handleDragLeave}
-                        onDrop={handleDrop}
-                    >
-                        <div className="upload-container">
-                            <input
-                                type="file"
-                                id="file-upload"
-                                className="file-input"
-                                onChange={handleFileInput}
-                                accept=".pdf,.doc,.docx,.odt,.rtf,.txt,.mp4,.webm,.ogg,.mov,.avi,.json,.js,.css,.html"
-                                style={{ display: 'none' }}
-                            />
-                            <label htmlFor="file-upload" className="upload-label">
-                                <div className="upload-icon">
-                                    {isDragging ? '✨' : '📥'}
-                                </div>
-                                <h3>Drop Your Content Here!</h3>
-                                <p className="upload-text">
-                                    {isDragging 
-                                        ? "Yasss! Drop it like it's hot 🔥" 
-                                        : "Drag & drop or tap to level up ⚡️"}
-                                </p>
-                                <div className="file-types-grid">
-                                    <span className="file-type-tag">📄 PDFs</span>
-                                    <span className="file-type-tag">📝 Docs</span>
-                                    <span className="file-type-tag">📹 Videos</span>
-                                    <span className="file-type-tag">📋 Text</span>
-                                </div>
-                            </label>
-                        </div>
-                    </div>
-                ) : (
-                    <div className="file-preview-container">
-                        <div className="preview-header">
-                            <h3>📑 {selectedFile.name}</h3>
-                            <button 
-                                className="close-preview" 
-                                onClick={() => {
-                                    setFileContent(null);
-                                    setSelectedFile(null);
-                                    setFileType(null);
-                                    setPreviewError(null);
-                                }}
-                            >
-                                ❌
-                            </button>
-                        </div>
-                        {renderFilePreview()}
-                    </div>
-                )}
-                
-                <div className="ai-sidebar">
-                    <div className="ai-question">
-                        <p>Ready to transform your content? Drop your files and let's get started! 🚀</p>
-                    </div>
-                    <div className="ai-response">
-                        <p>Here's what I can do with your files:</p>
-                        <div className="response-section">
-                            <ul>
-                                <li>✍️ Create smart summaries</li>
-                                <li>🎯 Generate flashcards</li>
-                                <li>🧠 Make interactive quizzes</li>
-                                <li>💡 Answer your questions</li>
-                            </ul>
-                        </div>
-                    </div>
-                    <div className="ai-input-container">
-                        <input type="text" placeholder="Ask me anything..." className="ai-input" />
-                        <button className="send-button">✨</button>
-                    </div>
-                </div>
-            </div>
+            {renderTabContent()}
             <UploadSuccess show={showSuccess} onClose={() => setShowSuccess(false)} />
         </div>
     );
