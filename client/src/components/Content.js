@@ -8,11 +8,13 @@ import '@react-pdf-viewer/core/lib/styles/index.css';
 import '@react-pdf-viewer/default-layout/lib/styles/index.css';
 import UploadSuccess from './UploadSuccess';
 import AIAssistant from './AIAssistant';
+import AINotes from './AINotes';
+import AISummary from './AISummary';
 import './Content.css';
 
 function Content() {
-    const [activeTab, setActiveTab] = useState('original');
     const [selectedFile, setSelectedFile] = useState(null);
+    const [activeTab, setActiveTab] = useState('original');
     const [isDragging, setIsDragging] = useState(false);
     const [fileContent, setFileContent] = useState(null);
     const [fileType, setFileType] = useState(null);
@@ -270,43 +272,9 @@ function Content() {
                     </div>
                 );
             case 'notes':
-                return (
-                    <div className="coming-soon-container">
-                        <div className="coming-soon-content">
-                            <div className="coming-soon-emoji">✍️</div>
-                            <h2>AI Notes Coming Soon!</h2>
-                            <p>Bestie, get ready for some mind-blowing AI notes! We're cooking up something that's gonna be:</p>
-                            <div className="feature-list">
-                                <div className="feature-item">🚀 Absolutely bussin'</div>
-                                <div className="feature-item">💅 Aesthetic AF</div>
-                                <div className="feature-item">🧠 Big brain energy</div>
-                                <div className="feature-item">✨ No cap, just facts</div>
-                            </div>
-                            <div className="coming-soon-footer">
-                                Stay tuned, it's gonna be fire! 🔥
-                            </div>
-                        </div>
-                    </div>
-                );
+                return <AINotes uploadedFile={selectedFile} />;
             case 'summary':
-                return (
-                    <div className="coming-soon-container">
-                        <div className="coming-soon-content">
-                            <div className="coming-soon-emoji">📝</div>
-                            <h2>AI Summary Loading...</h2>
-                            <p>Bestie, we're about to drop the hottest summaries fr fr!</p>
-                            <div className="feature-list">
-                                <div className="feature-item">💫 TL;DR but make it fancy</div>
-                                <div className="feature-item">🎯 Zero fluff, all facts</div>
-                                <div className="feature-item">🌈 Vibe check: immaculate</div>
-                                <div className="feature-item">💅 Main character energy</div>
-                            </div>
-                            <div className="coming-soon-footer">
-                                It's gonna hit different! 💁‍♀️
-                            </div>
-                        </div>
-                    </div>
-                );
+                return <AISummary uploadedFile={selectedFile} />;
             case 'flashcards':
                 return (
                     <div className="coming-soon-container">

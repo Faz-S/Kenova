@@ -130,7 +130,7 @@ def process_action(action):
         prompts = {
             "qa": question,
             "notes": """
-                         Analyze the provided document and generate detailed, well-organized smart notes that provide a thorough breakdown of the content. Ensure the notes are structured and informative, while capturing the essence of the document. The notes should include the following sections:
+                         Analyze the provided document and generate detailed, well-organized smart notes. Ensure the notes are structured and informative, while capturing the essence of the document. The notes should include the following sections:
 
                          Overview:
                                  A high-level summary of the content, outlining the main topics and objectives. Provide a clear understanding of the purpose and scope of the material, offering context for the reader.
@@ -145,6 +145,7 @@ def process_action(action):
 
                          the notes should contain all the topics listed above without leaving any headings above 
                          Ensure the notes are clear, concise, and easy to scan. Prioritize critical information while making sure that every section is well-explained and free of redundancy.
+                         Strictyly dont provide the introductory paragraph as heres a break down and similar to that be oin context start your response from the overview
                     """,
 
             "flashcards" :  """
@@ -210,6 +211,7 @@ def process_action(action):
 
         prompt = prompts[action]
         response, status_code = process_file_request(file_path, prompt)
+        print(response)
         return jsonify(response), status_code
 
     except Exception as e:

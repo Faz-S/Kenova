@@ -1,10 +1,21 @@
 .content-container {
     width: 100%;
-    height: calc(100vh - 60px); /* Subtract header height */
+    height: calc(100vh - 60px); /* Adjust based on your header height */
+    overflow: hidden;
+    position: relative;
+}
+
+.content-view {
+    width: 100%;
+    height: 100%;
     display: flex;
     flex-direction: column;
-    background: linear-gradient(170deg, #ffffff, #f0f3ff);
+}
+
+.content-display {
+    flex: 1;
     overflow: hidden;
+    position: relative;
 }
 
 .tabs {
@@ -239,6 +250,140 @@
     color: var(--primary);
 }
 
+.ai-notes {
+    padding: 40px;
+    height: 100%;
+    background: white;
+    overflow-y: auto;
+}
+
+.notes-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 40px;
+}
+
+.ai-label {
+    color: #6C63FF;
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.notes-label {
+    color: #2D3436;
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.note-section {
+    background: white;
+    border-radius: 24px;
+    padding: 32px;
+    margin-bottom: 32px;
+    box-shadow: 0 4px 24px rgba(108, 99, 255, 0.08);
+}
+
+.section-title {
+    font-size: 24px;
+    color: #2D3436;
+    margin-bottom: 24px;
+    font-weight: 600;
+}
+
+.note-points {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.note-point {
+    position: relative;
+    padding-left: 24px;
+    margin-bottom: 20px;
+    color: #4A5568;
+    line-height: 1.6;
+    font-size: 16px;
+}
+
+.note-point::before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    color: #6C63FF;
+    font-size: 20px;
+    line-height: 1;
+}
+
+.explain-more-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: transparent;
+    border: none;
+    padding: 0;
+    color: #6C63FF;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    margin-top: 24px;
+}
+
+.explain-more-icon {
+    font-size: 20px;
+}
+
+.notes-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px;
+    text-align: center;
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(108, 99, 255, 0.1);
+    border-radius: 50%;
+    border-top-color: #6C63FF;
+    animation: spin 1s linear infinite;
+    margin-bottom: 16px;
+}
+
+.notes-loading p {
+    color: #4A5568;
+    font-size: 16px;
+    margin: 0;
+}
+
+.notes-error {
+    text-align: center;
+    padding: 48px;
+}
+
+.notes-error p {
+    color: #E53E3E;
+    margin-bottom: 16px;
+}
+
+.retry-button {
+    background: #6C63FF;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.no-file-message {
+    text-align: center;
+    padding: 48px;
+    color: #4A5568;
+}
+
 @keyframes floatAnimation {
     0% { transform: translateY(0); }
     50% { transform: translateY(-10px); }
@@ -253,6 +398,10 @@
 @keyframes bounce {
     0%, 100% { transform: scale(1); }
     50% { transform: scale(1.1); }
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
 }
 
 :root {

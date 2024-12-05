@@ -17,7 +17,7 @@ class Uploader:
 
             if self.wait_for_processing(uploaded_file):
                 file = genai.get_file(uploaded_file.uri.split("/")[-1])
-                print(file)
+
                 return file
             else:
                 print("Error: File could not be processed.")
@@ -32,7 +32,7 @@ class Uploader:
             return False
 
         file_id = uploaded_file.uri.split("/")[-1]
-        print(file_id)
+
 
         print("Waiting for file processing")
         while uploaded_file.state.name in ["PROCESSING", "PENDING"]:
