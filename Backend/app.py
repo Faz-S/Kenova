@@ -83,39 +83,7 @@ def process_file_request(file_path, prompt):
     except Exception as e:
         return {"error": str(e)}, 500
 
-# @app.route('/qa', methods=['POST'])
-# def qa():
-#     file = request.files.get('file')
-#     question = request.form.get('question')
 
-#     if not file or not question:
-#         return jsonify({"error": "File or question is missing"}), 400
-
-#     file_path = file.filename
-#     file.save(file_path)
-
-#     response, status_code = process_file_request(file_path, question)
-#     return jsonify(response), status_code
-
-@app.route('/note')
-def note():
-    return render_template('notes.html')
-
-@app.route('/flash')
-def flash():
-    return render_template('flashcard.html')
-
-@app.route('/sum')
-def summary():
-    return render_template('summary.html')
-
-@app.route('/key')
-def keypoints():
-    return render_template('keypoints.html')
-
-@app.route('/quiz')
-def quiz():
-    return render_template('quiz.html')
 
 @app.route('/process/<action>', methods=['POST'])
 def process_action(action):

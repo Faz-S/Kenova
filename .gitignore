@@ -161,3 +161,4 @@ cython_debug/
 
 Backend/uploads
 client/node_modules
+Backend/db
