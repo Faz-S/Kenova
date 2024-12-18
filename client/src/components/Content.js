@@ -8,6 +8,7 @@ import { renderAsync } from 'docx-preview';
 import '@react-pdf-viewer/core/lib/styles/index.css';
 import '@react-pdf-viewer/default-layout/lib/styles/index.css';
 import styled, { keyframes, css } from 'styled-components';
+import UploadSuccess from './UploadSuccess';
 import AIAssistant from './AIAssistant';
 import AINotes from './AINotes';
 import AISummary from './AISummary';
@@ -675,103 +676,6 @@ const TextPreview = styled.pre`
   }
 `;
 
-const ChatContainer = styled.div`
-  padding: 1rem;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
-  overflow-y: auto;
-  max-height: 300px;
-`;
-
-const Message = styled.p`
-  margin: 0.5rem 0;
-  padding: 0.5rem;
-  border-radius: 12px;
-  background: ${props => props.isUser ? 'rgba(255, 97, 216, 0.1)' : 'rgba(107, 138, 255, 0.1)'};
-  color: ${props => props.isUser ? '#FF61D8' : '#6B8AFF'};
-  font-weight: 500;
-  font-size: 1rem;
-  width: fit-content;
-  align-self: ${props => props.isUser ? 'flex-end' : 'flex-start'};
-`;
-
-const ChatInput = styled.textarea`
-  padding: 1rem;
-  border: 2px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.05);
-  color: #FFFFFF;
-  font-size: 1rem;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(5px);
-  resize: none;
-
-  &:focus {
-    border-color: #FF61D8;
-    outline: none;
-    background: rgba(255, 97, 216, 0.1);
-    box-shadow: 
-      0 0 20px rgba(255, 97, 216, 0.2),
-      0 0 40px rgba(255, 97, 216, 0.1);
-  }
-
-  &::placeholder {
-    color: rgba(255, 255, 255, 0.4);
-    transition: color 0.3s ease;
-  }
-
-  &:focus::placeholder {
-    color: rgba(255, 97, 216, 0.6);
-  }
-`;
-
-const GenerateButton = styled.button`
-  padding: 1.2rem 2rem;
-  ${gradientBg}
-  color: white;
-  border: none;
-  border-radius: 16px;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 1rem;
-  transition: all 0.3s ease;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  position: relative;
-  overflow: hidden;
-
-  &:hover {
-    transform: translateY(-2px) scale(1.05);
-    box-shadow: 
-      0 10px 20px rgba(255, 97, 216, 0.3),
-      0 0 30px rgba(107, 138, 255, 0.3);
-    animation: ${glowPulse} 2s infinite;
-  }
-
-  &:active {
-    transform: translateY(1px) scale(0.98);
-  }
-
-  &::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      rgba(255, 255, 255, 0.3),
-      transparent
-    );
-    transition: 0.5s;
-  }
-
-  &:hover::after {
-    left: 100%;
-  }
-`;
-
 function Content({ onFileSelect }) {
     const navigate = useNavigate();
     const location = useLocation();
@@ -783,9 +687,6 @@ function Content({ onFileSelect }) {
     const [showSuccess, setShowSuccess] = useState(false);
     const [inputMethod, setInputMethod] = useState('file');
     const [youtubeUrl, setYoutubeUrl] = useState('');
-    const [messages, setMessages] = useState([]);
-    const [userMessage, setUserMessage] = useState('');
-    const [loading, setLoading] = useState(false);
     const defaultLayoutPluginInstance = defaultLayoutPlugin();
 
     const isValidYouTubeURL = (url) => {
@@ -795,59 +696,33 @@ function Content({ onFileSelect }) {
 
     const handleYouTubeUrlSubmit = async (e) => {
         e.preventDefault();
-        if (!youtubeUrl) {
-            setPreviewError('Please enter a valid YouTube URL');
-            return;
-        }
-
         if (!isValidYouTubeURL(youtubeUrl)) {
             setPreviewError('Please enter a valid YouTube URL');
             return;
         }
 
         try {
-            setLoading(true);
-            setPreviewError(null);
-
-            // Send to /process/qa endpoint
-            const formData = new FormData();
-            formData.append('url', youtubeUrl);
-            formData.append('type', 'youtube');
-
             const response = await fetch('http://127.0.0.1:5001/process/qa', {
                 method: 'POST',
-                body: formData
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ url: youtubeUrl })
             });
 
             if (!response.ok) {
                 throw new Error('Failed to process YouTube URL');
             }
 
-            const data = await response.json();
-            if (data.error) {
-                throw new Error(data.error);
-            }
-            
-            // Update UI state
+            setPreviewError(null);
             setFileType('youtube');
             setFileContent(youtubeUrl);
-            setSelectedFile({ name: 'YouTube Video', type: 'youtube', url: youtubeUrl });
-            onFileSelect({ type: 'youtube', url: youtubeUrl });
-            
+            setSelectedFile({ name: 'YouTube Video', type: 'youtube' });
             setShowSuccess(true);
             setTimeout(() => setShowSuccess(false), 3000);
         } catch (error) {
             console.error('Error processing YouTube URL:', error);
-            setPreviewError(error.message || 'Unable to process the YouTube URL. Please try again.');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleKeyPress = (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            handleYouTubeUrlSubmit();
+            setPreviewError('Unable to process the YouTube URL. Please try again.');
         }
     };
 
@@ -935,9 +810,21 @@ function Content({ onFileSelect }) {
                     throw new Error('Unsupported file type');
             }
 
+            // const formData = new FormData();
+            // formData.append('file', file);
+            // formData.append('question', 'default question');
 
-            setShowSuccess(true);
-            setTimeout(() => setShowSuccess(false), 3000);
+            // const response = await fetch('http://127.0.0.1:5001/process/qa', {
+            //     method: 'POST',
+            //     body: formData,
+            // });
+
+            // if (!response.ok) {
+            //     throw new Error('Failed to upload file to server');
+            // }
+
+            // setShowSuccess(true);
+            // setTimeout(() => setShowSuccess(false), 3000);
         } catch (error) {
             console.error('Error processing file:', error);
             setPreviewError(error.message || 'Unable to process this file. Please try another file.');
@@ -1087,24 +974,24 @@ function Content({ onFileSelect }) {
                         </UploadLabel>
                     </>
                 ) : (
-                    <div>
-                        <YoutubeUrlForm onSubmit={handleYouTubeUrlSubmit}>
-                            <YoutubeInputContainer>
-                                <YoutubeUrlInput 
-                                    type="text"
-                                    placeholder="Enter YouTube URL"
-                                    value={youtubeUrl}
-                                    onChange={(e) => setYoutubeUrl(e.target.value)}
-                                />
-                                <GenerateButton
-                                    type="submit"
-                                    disabled={!youtubeUrl || loading}
-                                >
-                                    {loading ? 'Loading Video...' : 'Load Video'}
-                                </GenerateButton>
-                            </YoutubeInputContainer>
-                        </YoutubeUrlForm>
-                    </div>
+                    <YoutubeUrlForm onSubmit={handleYouTubeUrlSubmit}>
+                        <YoutubeInputContainer>
+                            <YoutubeUrlInput 
+                                type="text"
+                                placeholder="Paste your YouTube URL here..."
+                                value={youtubeUrl}
+                                onChange={(e) => setYoutubeUrl(e.target.value)}
+                            />
+                            <YoutubeUrlSubmit type="submit">
+                                Load Video
+                            </YoutubeUrlSubmit>
+                        </YoutubeInputContainer>
+                        {previewError && (
+                            <ValidationError>
+                                {previewError}
+                            </ValidationError>
+                        )}
+                    </YoutubeUrlForm>
                 )}
             </UploadContainer>
         </UploadSection>
@@ -1173,7 +1060,7 @@ function Content({ onFileSelect }) {
                 ))}
             </TabsNav>
             {renderContent()}
-            {showSuccess && <div>File uploaded successfully!</div>}
+            {showSuccess && <UploadSuccess show={showSuccess} onClose={() => setShowSuccess(false)} />}
         </ContentContainer>
     );
 }

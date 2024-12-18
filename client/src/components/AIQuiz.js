@@ -769,7 +769,7 @@ const AIQuiz = () => {
             <input
               type="file"
               onChange={handleFileChange}
-              accept=".txt,.pdf,.doc,.docx,.mp4,.webm,.ogg,.mov,.avi,.ogg,.odt,.rtf,.js,.json,.css,.html"
+              accept=".txt,.pdf,.doc,.docx"
             />
             {file ? ' Change File' : ' Upload Document'}
           </label>

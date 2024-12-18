@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import { baseContainerStyle, cardStyle, colors, buttonStyle } from '../styles/theme';
 
 const SummaryLayout = styled.div`
   display: grid;
@@ -29,28 +28,35 @@ const Sidebar = styled.div`
 `;
 
 const FileUpload = styled.div`
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 
-  label {
-    display: inline-block;
-    padding: 12px 20px;
-    background: #2a2d35;
-    border-radius: 8px;
-    cursor: pointer;
+  .upload-button {
+    width: 100%;
+    padding: 12px;
+    background: #22252d;
+    border: 2px dashed #2a2d35;
+    border-radius: 12px;
     color: #ffffff;
+    cursor: pointer;
     transition: all 0.3s ease;
+    text-align: center;
+    font-size: 0.9rem;
 
     &:hover {
-      background: #3a3d45;
+      border-color: #FF61D8;
+      background: rgba(255, 97, 216, 0.1);
     }
-  }
 
-  input {
-    display: none;
+    input {
+      display: none;
+    }
   }
 
   .file-info {
     margin-top: 12px;
+    padding: 12px;
+    background: #22252d;
+    border-radius: 8px;
     color: #6B8AFF;
     font-size: 0.9rem;
   }
@@ -66,6 +72,7 @@ const GenerateButton = styled.button`
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
+  margin-bottom: 20px;
 
   &:hover {
     background: #ff7de0;
@@ -86,7 +93,6 @@ const SummaryContainer = styled.div`
   border: 1px solid #2a2d35;
   color: #ffffff;
   min-height: 80vh;
-  overflow-y: auto;
 
   h1 {
     color: #FF61D8;
@@ -102,68 +108,110 @@ const SummaryContainer = styled.div`
     color: #6B8AFF;
     font-size: 1.1rem;
   }
+
+  .error {
+    padding: 16px;
+    background: rgba(255, 107, 107, 0.1);
+    border: 1px solid #FF6B6B;
+    border-radius: 8px;
+    color: #FF6B6B;
+    margin-bottom: 20px;
+  }
 `;
 
-const Section = styled.div`
-  margin-bottom: 2.5rem;
-  padding-bottom: 2rem;
-  border-bottom: 1px solid #2a2d35;
+const SummaryContent = styled.div`
+  line-height: 1.6;
+  color: #ffffff;
 
-  &:last-child {
-    margin-bottom: 0;
-    border-bottom: none;
+  .summary-section {
+    background: #22252d;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    border: 1px solid #2a2d35;
+    transition: all 0.3s ease;
+
+    &:hover {
+      transform: translateY(-2px);
+      border-color: #FF61D8;
+    }
   }
 
   h2 {
     color: #6B8AFF;
-    font-size: 1.5rem;
-    margin-bottom: 1rem;
-    text-transform: capitalize;
+    margin: 0 0 16px;
+    font-size: 1.4rem;
   }
 
   h3 {
     color: #00FFA3;
+    margin: 20px 0 12px;
     font-size: 1.2rem;
-    margin: 1.5rem 0 1rem;
   }
 
   p {
+    margin-bottom: 16px;
+    font-size: 1rem;
     color: #ffffff;
-    line-height: 1.8;
-    font-size: 1.1rem;
-    white-space: pre-wrap;
   }
 
-  ul {
-    list-style-type: none;
-    padding-left: 0;
-    margin-top: 1rem;
+  ul, ol {
+    margin: 16px 0;
+    padding-left: 24px;
 
     li {
-      position: relative;
-      padding-left: 1.5rem;
-      margin-bottom: 0.8rem;
-      line-height: 1.6;
+      margin-bottom: 8px;
       color: #ffffff;
+    }
+  }
 
-      &:before {
-        content: "•";
-        color: #00FFA3;
-        position: absolute;
-        left: 0;
-        font-size: 1.2rem;
+  .key-points {
+    display: grid;
+    gap: 12px;
+    margin: 16px 0;
+
+    .point {
+      background: #1a1d24;
+      padding: 12px 16px;
+      border-radius: 8px;
+      border: 1px solid #2a2d35;
+      transition: all 0.3s ease;
+
+      &:hover {
+        border-color: #6B8AFF;
+        transform: translateX(4px);
       }
     }
   }
-`;
 
-const ErrorMessage = styled.div`
-  padding: 16px;
-  background: rgba(255, 107, 107, 0.1);
-  border: 1px solid #FF6B6B;
-  border-radius: 8px;
-  color: #FF6B6B;
-  margin-bottom: 20px;
+  .highlight {
+    background: rgba(255, 97, 216, 0.1);
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: #FF61D8;
+  }
+
+  code {
+    background: #13151a;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Fira Code', monospace;
+    color: #00FFA3;
+  }
+
+  pre {
+    background: #13151a;
+    padding: 16px;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 16px 0;
+    border: 1px solid #2a2d35;
+
+    code {
+      background: none;
+      padding: 0;
+    }
+  }
 `;
 
 const NoSummary = styled.div`
@@ -188,29 +236,26 @@ const NoSummary = styled.div`
   }
 `;
 
-const AISummary = () => {
+export default function AISummary() {
   const [file, setFile] = useState(null);
-  const [summary, setSummary] = useState(null);
+  const [summary, setSummary] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState(null);
 
   const handleFileChange = (event) => {
     const selectedFile = event.target.files[0];
-    if (selectedFile) {
-      setFile(selectedFile);
-      setError('');
-    }
+    setFile(selectedFile);
+    setError(null);
   };
 
   const generateSummary = async () => {
     if (!file) {
-      setError('Please upload a file first');
+      setError('Please select a file first');
       return;
     }
 
     setLoading(true);
-    setError('');
-    setSummary(null);
+    setError(null);
 
     try {
       const formData = new FormData();
@@ -218,7 +263,7 @@ const AISummary = () => {
 
       const response = await fetch('http://localhost:5001/process/summary', {
         method: 'POST',
-        body: formData
+        body: formData,
       });
 
       if (!response.ok) {
@@ -226,60 +271,31 @@ const AISummary = () => {
       }
 
       const data = await response.json();
-
-      if (data.error) {
-        throw new Error(data.error);
-      }
-
-      try {
-        let jsonStr = data.response.replace(/```json\n|\n```/g, '');
-        const parsedSummary = JSON.parse(jsonStr);
-        
-        if (typeof parsedSummary === 'object' && parsedSummary !== null) {
-          setSummary(parsedSummary);
-        } else {
-          throw new Error('Invalid response format');
-        }
-      } catch (e) {
-        console.error('Error parsing JSON:', e);
-        setSummary({
-          "error": "Failed to parse response",
-          "raw_response": data.response
-        });
-      }
-    } catch (error) {
-      console.error('Error:', error);
-      setError(error.message || 'Failed to generate summary');
+      setSummary(data.response);
+    } catch (err) {
+      setError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
-  const renderContent = (key, value) => {
-    if (typeof value === 'string') {
-      return <p>{value}</p>;
-    }
-    
-    if (Array.isArray(value)) {
+  const renderSummaryContent = () => {
+    if (!summary) return null;
+
+    const sections = summary.split('\n\n').filter(Boolean);
+    return sections.map((section, index) => {
+      const [title, ...content] = section.split(':');
       return (
-        <ul>
-          {value.map((item, index) => (
-            <li key={index}>{item}</li>
-          ))}
-        </ul>
-      );
-    }
-    
-    if (typeof value === 'object' && value !== null) {
-      return Object.entries(value).map(([subKey, subValue]) => (
-        <div key={subKey}>
-          <h3>{subKey.replace(/_/g, ' ')}</h3>
-          {renderContent(subKey, subValue)}
+        <div key={index} className="summary-section">
+          <h2>{title.trim()}</h2>
+          <div className="content">
+            {content.join(':').trim().split('\n').map((paragraph, pIndex) => (
+              <p key={pIndex}>{paragraph}</p>
+            ))}
+          </div>
         </div>
-      ));
-    }
-    
-    return null;
+      );
+    });
   };
 
   return (
@@ -287,13 +303,13 @@ const AISummary = () => {
       <Sidebar>
         <h2>Smart Summary</h2>
         <FileUpload>
-          <label>
+          <label className="upload-button">
             <input
               type="file"
               onChange={handleFileChange}
-              accept=".txt,.pdf,.doc,.docx,.mp4,.webm,.ogg,.mov,.avi,.ogg,.odt,.rtf,.js,.json,.css,.html"
+              accept=".txt,.pdf,.doc,.docx"
             />
-            📄 {file ? 'Change File' : 'Upload Document'}
+            {file ? '📎 Change File' : '📄 Upload Document'}
           </label>
           {file && (
             <div className="file-info">
@@ -310,23 +326,18 @@ const AISummary = () => {
       </Sidebar>
 
       <SummaryContainer>
-        {error && <ErrorMessage>{error}</ErrorMessage>}
+        <h1>Smart Summary</h1>
+        {error && <div className="error">{error}</div>}
         
         {loading ? (
           <div className="loading">Generating smart summary...</div>
         ) : summary ? (
-          <>
-            <h1>Document Summary</h1>
-            {Object.entries(summary).map(([key, value]) => (
-              <Section key={key}>
-                <h2>{key.replace(/_/g, ' ')}</h2>
-                {renderContent(key, value)}
-              </Section>
-            ))}
-          </>
+          <SummaryContent>
+            {renderSummaryContent()}
+          </SummaryContent>
         ) : (
           <NoSummary>
-            <div className="icon">📝</div>
+            <div className="icon">📋</div>
             <h3>No Summary Generated Yet</h3>
             <p>Upload a document and click 'Generate Summary' to get started</p>
           </NoSummary>
@@ -334,6 +345,4 @@ const AISummary = () => {
       </SummaryContainer>
     </SummaryLayout>
   );
-};
-
-export default AISummary;
+}

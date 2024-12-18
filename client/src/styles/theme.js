@@ -24,26 +24,6 @@ export const glowPulse = keyframes`
   100% { box-shadow: 0 0 5px rgba(255, 97, 216, 0.2), 0 0 10px rgba(255, 97, 216, 0.2), 0 0 15px rgba(255, 97, 216, 0.2); }
 `;
 
-export const shimmer = keyframes`
-  0% { background-position: -1000px 0; }
-  100% { background-position: 1000px 0; }
-`;
-
-export const floatWithRotate = keyframes`
-  0% { 
-    transform: translateY(0px) rotate(0deg);
-    filter: hue-rotate(0deg);
-  }
-  50% { 
-    transform: translateY(-10px) rotate(2deg);
-    filter: hue-rotate(180deg);
-  }
-  100% { 
-    transform: translateY(0px) rotate(0deg);
-    filter: hue-rotate(360deg);
-  }
-`;
-
 // Shared gradients and effects
 export const gradientBg = css`
   background: linear-gradient(45deg, #FF61D8, #6B8AFF, #00FFA3, #FFB800);

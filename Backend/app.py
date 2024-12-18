@@ -4,6 +4,9 @@ from content_processor import ContentProcessor
 import os
 import psycopg2
 import re
+from dotenv import load_dotenv
+
+load_dotenv()
 import google.generativeai as genai
 
 app = Flask(__name__)
@@ -38,7 +41,7 @@ def process_file_request(file_path, prompt):
                 file_type = "video"
                 sanitized_url = re.sub(r'[^a-zA-Z0-9]', '_', file_path)
                 half_path = r"AI"
-                check_file_path = half_path + f"/db/downloaded_video_{sanitized_url}.mp4"
+                check_file_path = half_path + f"\\db\\downloaded_video_{sanitized_url}.mp4"
             else:
                 file_type = processor.file_handler.determine_file_type(file_path)
                 check_file_path = file_path
@@ -83,25 +86,57 @@ def process_file_request(file_path, prompt):
     except Exception as e:
         return {"error": str(e)}, 500
 
+# @app.route('/qa', methods=['POST'])
+# def qa():
+#     file = request.files.get('file')
+#     question = request.form.get('question')
 
+#     if not file or not question:
+#         return jsonify({"error": "File or question is missing"}), 400
+
+#     file_path = file.filename
+#     file.save(file_path)
+
+#     response, status_code = process_file_request(file_path, question)
+#     return jsonify(response), status_code
+
+@app.route('/note')
+def note():
+    return render_template('notes.html')
+
+@app.route('/flash')
+def flash():
+    return render_template('flashcard.html')
+
+@app.route('/sum')
+def summary():
+    return render_template('summary.html')
+
+@app.route('/key')
+def keypoints():
+    return render_template('keypoints.html')
+
+@app.route('/quiz')
+def quiz():
+    return render_template('quiz.html')
 
 @app.route('/process/<action>', methods=['POST'])
 def process_action(action):
     try:
+        UPLOAD_FOLDER = 'uploads'
+        if not os.path.exists(UPLOAD_FOLDER):
+            os.makedirs(UPLOAD_FOLDER)
         file = request.files.get('file')
+        print(file)
         question = request.form.get('question')
-        url = request.form.get('url')
-
-        if action not in ['qa', 'notes', 'flashcards', 'summary', 'keypoints', 'quiz']:
-            return jsonify({"error": "Invalid action"}), 400
-
-        if not file and not url:
+        print(question)
+        if not file:
             return jsonify({"error": "File is missing"}), 400
 
-        if file:
-            file_path = file.filename
-            file_path = "uploads/"+ file_path 
-            file.save(file_path)
+        file_path = file.filename
+        file_path = UPLOAD_FOLDER + "/" + file_path
+        print(file_path)
+        file.save(file_path)
 
         prompts = {
             "qa": question,
@@ -219,16 +254,13 @@ def process_action(action):
                ]
                """
         }
+
+        print(action)
         if action not in prompts:
             return jsonify({"error": f"Invalid action '{action}'"}), 400
-
         prompt = prompts[action]
-        if file:
-            response, status_code = process_file_request(file_path, prompt)
-        elif url:
-            response, status_code = process_file_request(url, prompt)
-        else:
-            return jsonify({"error": "File or URL is missing"}), 400
+        
+        response, status_code = process_file_request(file_path, prompt)
         print(response)
         return jsonify(response), status_code
 
@@ -237,4 +269,3 @@ def process_action(action):
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5001)
-

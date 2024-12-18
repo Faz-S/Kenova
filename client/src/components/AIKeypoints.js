@@ -1,15 +1,14 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 
-const KeypointsLayout = styled.div`
+const KeyPointsLayout = styled.div`
   display: grid;
   grid-template-columns: 300px 1fr;
   gap: 20px;
-  height: 100vh;
+  min-height: 100vh;
   padding: 20px;
   background: #13151a;
   font-family: 'Space Grotesk', sans-serif;
-  overflow: hidden;
 `;
 
 const Sidebar = styled.div`
@@ -20,144 +19,45 @@ const Sidebar = styled.div`
   height: fit-content;
   position: sticky;
   top: 20px;
-  max-height: calc(100vh - 40px);
-  overflow-y: auto;
 
   h2 {
     color: #FF61D8;
     margin-bottom: 20px;
     font-size: 1.4rem;
   }
-
-  &::-webkit-scrollbar {
-    width: 8px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: #1a1d24;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background: #2a2d35;
-    border-radius: 4px;
-  }
-
-  &::-webkit-scrollbar-thumb:hover {
-    background: #3a3d45;
-  }
-`;
-
-const KeypointsContainer = styled.div`
-  height: calc(100vh - 40px);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-`;
-
-const ContentHeader = styled.div`
-  padding: 30px 30px 0;
-  background: #13151a;
-
-  h1 {
-    color: #FF61D8;
-    margin-bottom: 30px;
-    font-size: 2rem;
-  }
-`;
-
-const ContentArea = styled.div`
-  flex: 1;
-  overflow-y: auto;
-  padding: 0 30px 30px;
-
-  &::-webkit-scrollbar {
-    width: 8px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: #13151a;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background: #2a2d35;
-    border-radius: 4px;
-  }
-
-  &::-webkit-scrollbar-thumb:hover {
-    background: #3a3d45;
-  }
-`;
-
-const Section = styled.div`
-  background: #1a1d24;
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 20px;
-  border: 1px solid #2a2d35;
-
-  h2 {
-    color: #FF61D8;
-    margin-bottom: 15px;
-    font-size: 1.2rem;
-    text-transform: capitalize;
-  }
-
-  h3 {
-    color: #7DF9FF;
-    margin: 15px 0 10px;
-    font-size: 1.1rem;
-  }
-
-  p {
-    color: #ffffff;
-    line-height: 1.6;
-    margin-bottom: 10px;
-  }
-
-  ul {
-    list-style-type: none;
-    padding-left: 0;
-    
-    li {
-      color: #ffffff;
-      margin-bottom: 10px;
-      padding-left: 20px;
-      position: relative;
-
-      &:before {
-        content: "•";
-        color: #7DF9FF;
-        position: absolute;
-        left: 0;
-      }
-    }
-  }
 `;
 
 const FileUpload = styled.div`
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 
-  label {
-    display: inline-block;
-    padding: 12px 20px;
-    background: #2a2d35;
-    border-radius: 8px;
-    cursor: pointer;
+  .upload-button {
+    width: 100%;
+    padding: 12px;
+    background: #22252d;
+    border: 2px dashed #2a2d35;
+    border-radius: 12px;
     color: #ffffff;
+    cursor: pointer;
     transition: all 0.3s ease;
+    text-align: center;
+    font-size: 0.9rem;
 
     &:hover {
-      background: #3a3d45;
+      border-color: #FF61D8;
+      background: rgba(255, 97, 216, 0.1);
+    }
+
+    input {
+      display: none;
     }
   }
 
-  input {
-    display: none;
-  }
-
   .file-info {
-    margin-top: 10px;
-    color: #7DF9FF;
+    margin-top: 12px;
+    padding: 12px;
+    background: #22252d;
+    border-radius: 8px;
+    color: #6B8AFF;
     font-size: 0.9rem;
   }
 `;
@@ -186,16 +86,113 @@ const GenerateButton = styled.button`
   }
 `;
 
-const NoKeypoints = styled.div`
+const KeyPointsContainer = styled.div`
+  background: #1a1d24;
+  border-radius: 12px;
+  padding: 30px;
+  border: 1px solid #2a2d35;
+  color: #ffffff;
+  min-height: 80vh;
+
+  h1 {
+    color: #FF61D8;
+    margin-bottom: 24px;
+    font-size: 2rem;
+  }
+
+  .loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    color: #6B8AFF;
+    font-size: 1.1rem;
+  }
+
+  .error {
+    padding: 16px;
+    background: rgba(255, 107, 107, 0.1);
+    border: 1px solid #FF6B6B;
+    border-radius: 8px;
+    color: #FF6B6B;
+    margin-bottom: 20px;
+  }
+`;
+
+const KeyPointsContent = styled.div`
+  display: grid;
+  gap: 20px;
+
+  .category {
+    background: #22252d;
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid #2a2d35;
+    transition: all 0.3s ease;
+
+    &:hover {
+      transform: translateY(-2px);
+      border-color: #FF61D8;
+    }
+
+    h2 {
+      color: #6B8AFF;
+      margin-bottom: 16px;
+      font-size: 1.4rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      .icon {
+        color: #FF61D8;
+      }
+    }
+  }
+
+  .points-grid {
+    display: grid;
+    gap: 12px;
+
+    .point {
+      background: #1a1d24;
+      padding: 16px;
+      border-radius: 8px;
+      border: 1px solid #2a2d35;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+
+      &:hover {
+        border-color: #00FFA3;
+        transform: translateX(4px);
+      }
+
+      .bullet {
+        color: #00FFA3;
+        font-size: 1.2rem;
+      }
+
+      .text {
+        color: #ffffff;
+        line-height: 1.6;
+      }
+
+      .highlight {
+        background: rgba(255, 97, 216, 0.1);
+        padding: 2px 6px;
+        border-radius: 4px;
+        color: #FF61D8;
+        font-weight: 500;
+      }
+    }
+  }
+`;
+
+const NoKeyPoints = styled.div`
   text-align: center;
   padding: 40px;
   color: #6B8AFF;
-
-  .icon {
-    font-size: 48px;
-    margin-bottom: 20px;
-    color: #FF61D8;
-  }
 
   h3 {
     margin-bottom: 16px;
@@ -206,20 +203,26 @@ const NoKeypoints = styled.div`
     margin-bottom: 24px;
     line-height: 1.6;
   }
+
+  .icon {
+    font-size: 48px;
+    margin-bottom: 20px;
+    color: #FF61D8;
+  }
 `;
 
-const ErrorMessage = styled.div`
-  background: #ff616130;
-  color: #ff6161;
-  padding: 15px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-  border: 1px solid #ff6161;
-`;
+const categoryIcons = {
+  'Main Ideas': '💡',
+  'Key Concepts': '🔑',
+  'Important Details': '📌',
+  'Supporting Evidence': '📊',
+  'Conclusions': '🎯',
+  'Recommendations': '💫',
+};
 
-function AIKeypoints() {
+export default function AIKeyPoints() {
   const [file, setFile] = useState(null);
-  const [keypoints, setKeypoints] = useState(null);
+  const [keyPoints, setKeyPoints] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -229,7 +232,7 @@ function AIKeypoints() {
     setError(null);
   };
 
-  const generateKeypoints = async () => {
+  const generateKeyPoints = async () => {
     if (!file) {
       setError('Please select a file first');
       return;
@@ -238,71 +241,68 @@ function AIKeypoints() {
     setLoading(true);
     setError(null);
 
-    const formData = new FormData();
-    formData.append('file', file);
-
     try {
+      const formData = new FormData();
+      formData.append('file', file);
+
       const response = await fetch('http://localhost:5001/process/keypoints', {
         method: 'POST',
         body: formData,
       });
 
       if (!response.ok) {
-        throw new Error('Failed to generate keypoints');
+        throw new Error('Failed to generate key points');
       }
 
       const data = await response.json();
-      
-      // Parse the JSON string from the response
-      let jsonStr = data.response.replace(/```json\n|\n```/g, '');
-      const parsedKeypoints = JSON.parse(jsonStr);
-      setKeypoints(parsedKeypoints);
+      setKeyPoints(data.response);
     } catch (err) {
-      setError('Error generating keypoints: ' + err.message);
+      setError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
-  const renderValue = (value) => {
-    if (typeof value === 'string') {
-      return <p>{value}</p>;
-    }
-    
-    if (Array.isArray(value)) {
+  const renderKeyPointsContent = () => {
+    if (!keyPoints) return null;
+
+    const sections = keyPoints.split('\n\n').filter(Boolean);
+    return sections.map((section, index) => {
+      const [category, ...points] = section.split(':');
+      const trimmedCategory = category.trim();
+      const icon = categoryIcons[trimmedCategory] || '📝';
+
       return (
-        <ul>
-          {value.map((item, index) => (
-            <li key={index}>{item}</li>
-          ))}
-        </ul>
-      );
-    }
-    
-    if (typeof value === 'object' && value !== null) {
-      return Object.entries(value).map(([subKey, subValue]) => (
-        <div key={subKey}>
-          <h3>{subKey.replace(/_/g, ' ')}</h3>
-          {renderValue(subValue)}
+        <div key={index} className="category">
+          <h2>
+            <span className="icon">{icon}</span>
+            {trimmedCategory}
+          </h2>
+          <div className="points-grid">
+            {points.join(':').trim().split('\n').map((point, pIndex) => (
+              <div key={pIndex} className="point">
+                <span className="bullet">•</span>
+                <span className="text">{point.trim()}</span>
+              </div>
+            ))}
+          </div>
         </div>
-      ));
-    }
-    
-    return null;
+      );
+    });
   };
 
   return (
-    <KeypointsLayout>
+    <KeyPointsLayout>
       <Sidebar>
         <h2>Key Points</h2>
         <FileUpload>
-          <label>
+          <label className="upload-button">
             <input
               type="file"
               onChange={handleFileChange}
-              accept=".txt,.pdf,.doc,.docx,.mp4,.webm,.ogg,.mov,.avi,.ogg,.odt,.rtf,.js,.json,.css,.html"
+              accept=".txt,.pdf,.doc,.docx"
             />
-            📄 {file ? 'Change File' : 'Upload Document'}
+            {file ? '📎 Change File' : '📄 Upload Document'}
           </label>
           {file && (
             <div className="file-info">
@@ -311,42 +311,31 @@ function AIKeypoints() {
           )}
         </FileUpload>
         <GenerateButton
-          onClick={generateKeypoints}
+          onClick={generateKeyPoints}
           disabled={!file || loading}
         >
           {loading ? 'Generating...' : 'Generate Key Points'}
         </GenerateButton>
       </Sidebar>
 
-      <KeypointsContainer>
-        {error && <ErrorMessage>{error}</ErrorMessage>}
+      <KeyPointsContainer>
+        <h1>Key Points</h1>
+        {error && <div className="error">{error}</div>}
         
         {loading ? (
           <div className="loading">Generating key points...</div>
-        ) : keypoints ? (
-          <>
-            <ContentHeader>
-              <h1>🔥 Doc Cheat Codes 🔑</h1>
-            </ContentHeader>
-            <ContentArea>
-              {Object.entries(keypoints).map(([key, value]) => (
-                <Section key={key}>
-                  <h2>{key.replace(/_/g, ' ')}</h2>
-                  {renderValue(value)}
-                </Section>
-              ))}
-            </ContentArea>
-          </>
+        ) : keyPoints ? (
+          <KeyPointsContent>
+            {renderKeyPointsContent()}
+          </KeyPointsContent>
         ) : (
-          <NoKeypoints>
-            <div className="icon">📝</div>
+          <NoKeyPoints>
+            <div className="icon">🔑</div>
             <h3>No Key Points Generated Yet</h3>
             <p>Upload a document and click 'Generate Key Points' to get started</p>
-          </NoKeypoints>
+          </NoKeyPoints>
         )}
-      </KeypointsContainer>
-    </KeypointsLayout>
+      </KeyPointsContainer>
+    </KeyPointsLayout>
   );
 }
-
-export default AIKeypoints;

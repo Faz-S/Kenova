@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import { baseContainerStyle, cardStyle, colors, buttonStyle } from '../styles/theme';
 
 const NotesLayout = styled.div`
   display: grid;
@@ -29,28 +28,35 @@ const Sidebar = styled.div`
 `;
 
 const FileUpload = styled.div`
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 
-  label {
-    display: inline-block;
-    padding: 12px 20px;
-    background: #2a2d35;
-    border-radius: 8px;
-    cursor: pointer;
+  .upload-button {
+    width: 100%;
+    padding: 12px;
+    background: #22252d;
+    border: 2px dashed #2a2d35;
+    border-radius: 12px;
     color: #ffffff;
+    cursor: pointer;
     transition: all 0.3s ease;
+    text-align: center;
+    font-size: 0.9rem;
 
     &:hover {
-      background: #3a3d45;
+      border-color: #FF61D8;
+      background: rgba(255, 97, 216, 0.1);
     }
-  }
 
-  input {
-    display: none;
+    input {
+      display: none;
+    }
   }
 
   .file-info {
     margin-top: 12px;
+    padding: 12px;
+    background: #22252d;
+    border-radius: 8px;
     color: #6B8AFF;
     font-size: 0.9rem;
   }
@@ -66,6 +72,7 @@ const GenerateButton = styled.button`
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
+  margin-bottom: 20px;
 
   &:hover {
     background: #ff7de0;
@@ -86,7 +93,6 @@ const NotesContainer = styled.div`
   border: 1px solid #2a2d35;
   color: #ffffff;
   min-height: 80vh;
-  overflow-y: auto;
 
   h1 {
     color: #FF61D8;
@@ -102,77 +108,90 @@ const NotesContainer = styled.div`
     color: #6B8AFF;
     font-size: 1.1rem;
   }
+
+  .error {
+    padding: 16px;
+    background: rgba(255, 107, 107, 0.1);
+    border: 1px solid #FF6B6B;
+    border-radius: 8px;
+    color: #FF6B6B;
+    margin-bottom: 20px;
+  }
 `;
 
-const Section = styled.div`
-  margin-bottom: 2.5rem;
-  padding-bottom: 2rem;
-  border-bottom: 1px solid #2a2d35;
-
-  &:last-child {
-    margin-bottom: 0;
-    border-bottom: none;
-  }
+const NotesContent = styled.div`
+  line-height: 1.6;
+  color: #ffffff;
 
   h2 {
     color: #6B8AFF;
-    font-size: 1.5rem;
-    margin-bottom: 1rem;
-    text-transform: capitalize;
+    margin: 24px 0 16px;
+    font-size: 1.4rem;
   }
-
-  p {
-    color: #ffffff;
-    line-height: 1.8;
-    font-size: 1.1rem;
-    white-space: pre-wrap;
-  }
-`;
-
-const SubSection = styled.div`
-  margin-top: 1.5rem;
-  padding-left: 1.5rem;
-  border-left: 2px solid #2a2d35;
 
   h3 {
     color: #00FFA3;
+    margin: 20px 0 12px;
     font-size: 1.2rem;
-    margin-bottom: 0.8rem;
-    text-transform: capitalize;
   }
 
   p {
+    margin-bottom: 16px;
     font-size: 1rem;
   }
 
-  ul {
-    list-style-type: none;
-    padding: 0;
-    margin: 0;
+  ul, ol {
+    margin: 16px 0;
+    padding-left: 24px;
 
     li {
-      margin-bottom: 0.8rem;
-      line-height: 1.6;
-      position: relative;
-      padding-left: 1.5rem;
-
-      &:before {
-        content: "•";
-        color: #6B8AFF;
-        position: absolute;
-        left: 0;
-      }
+      margin-bottom: 8px;
     }
   }
-`;
 
-const ErrorMessage = styled.div`
-  padding: 16px;
-  background: rgba(255, 107, 107, 0.1);
-  border: 1px solid #FF6B6B;
-  border-radius: 8px;
-  color: #FF6B6B;
-  margin-bottom: 20px;
+  blockquote {
+    margin: 20px 0;
+    padding: 16px;
+    border-left: 4px solid #FF61D8;
+    background: #22252d;
+    border-radius: 0 8px 8px 0;
+    font-style: italic;
+  }
+
+  code {
+    background: #22252d;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Fira Code', monospace;
+    color: #00FFA3;
+  }
+
+  pre {
+    background: #22252d;
+    padding: 16px;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 16px 0;
+    border: 1px solid #2a2d35;
+
+    code {
+      background: none;
+      padding: 0;
+      color: #00FFA3;
+    }
+  }
+
+  a {
+    color: #6B8AFF;
+    text-decoration: none;
+    border-bottom: 1px dashed #6B8AFF;
+    transition: all 0.3s ease;
+
+    &:hover {
+      color: #FF61D8;
+      border-color: #FF61D8;
+    }
+  }
 `;
 
 const NoNotes = styled.div`
@@ -197,71 +216,26 @@ const NoNotes = styled.div`
   }
 `;
 
-const renderValue = (value) => {
-  if (Array.isArray(value)) {
-    return (
-      <ul>
-        {value.map((item, index) => (
-          <li key={index}>{item}</li>
-        ))}
-      </ul>
-    );
-  } else if (typeof value === 'object' && value !== null) {
-    return Object.entries(value).map(([subKey, subValue]) => (
-      <SubSection key={subKey}>
-        <h3>{subKey.replace(/_/g, ' ')}</h3>
-        {renderValue(subValue)}
-      </SubSection>
-    ));
-  } else {
-    return <p>{value}</p>;
-  }
-};
-
-const extractJsonFromResponse = (response) => {
-  // Remove "Here's a JSON representation..." prefix if it exists
-  const jsonStart = response.indexOf('{');
-  const jsonEnd = response.lastIndexOf('}');
-  
-  if (jsonStart === -1 || jsonEnd === -1) {
-    throw new Error('Invalid response format: No JSON object found');
-  }
-  
-  // Extract only the JSON part
-  const jsonStr = response.slice(jsonStart, jsonEnd + 1);
-  
-  try {
-    // Parse the JSON string
-    return JSON.parse(jsonStr);
-  } catch (e) {
-    console.error('JSON parsing error:', e);
-    throw new Error('Failed to parse JSON response');
-  }
-};
-
-const AINotes = () => {
+export default function AINotes() {
   const [file, setFile] = useState(null);
-  const [notes, setNotes] = useState(null);
+  const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState(null);
 
   const handleFileChange = (event) => {
     const selectedFile = event.target.files[0];
-    if (selectedFile) {
-      setFile(selectedFile);
-      setError('');
-    }
+    setFile(selectedFile);
+    setError(null);
   };
 
   const generateNotes = async () => {
     if (!file) {
-      setError('Please upload a file first');
+      setError('Please select a file first');
       return;
     }
 
     setLoading(true);
-    setError('');
-    setNotes(null);
+    setError(null);
 
     try {
       const formData = new FormData();
@@ -269,7 +243,7 @@ const AINotes = () => {
 
       const response = await fetch('http://localhost:5001/process/notes', {
         method: 'POST',
-        body: formData
+        body: formData,
       });
 
       if (!response.ok) {
@@ -277,22 +251,9 @@ const AINotes = () => {
       }
 
       const data = await response.json();
-
-      if (data.error) {
-        throw new Error(data.error);
-      }
-
-      try {
-        // Extract and parse the JSON from the response
-        const parsedNotes = extractJsonFromResponse(data.response);
-        setNotes(parsedNotes);
-      } catch (e) {
-        console.error('Error processing response:', e);
-        setError(e.message || 'Failed to process the response');
-      }
-    } catch (error) {
-      console.error('Error:', error);
-      setError(error.message || 'Failed to generate notes');
+      setNotes(data.response);
+    } catch (err) {
+      setError(err.message);
     } finally {
       setLoading(false);
     }
@@ -301,15 +262,15 @@ const AINotes = () => {
   return (
     <NotesLayout>
       <Sidebar>
-        <h2>✨ Smart Notes</h2>
+        <h2>Smart Notes</h2>
         <FileUpload>
-          <label>
+          <label className="upload-button">
             <input
               type="file"
               onChange={handleFileChange}
-              accept=".txt,.pdf,.doc,.docx,.mp4,.webm,.ogg,.mov,.avi,.ogg,.odt,.rtf,.js,.json,.css,.html"
+              accept=".txt,.pdf,.doc,.docx"
             />
-            📄 {file ? 'Change File' : 'Upload Document'}
+            {file ? '📎 Change File' : '📄 Upload Document'}
           </label>
           {file && (
             <div className="file-info">
@@ -321,25 +282,18 @@ const AINotes = () => {
           onClick={generateNotes}
           disabled={!file || loading}
         >
-          {loading ? '🔮 Generating...' : '✨ Generate Notes'}
+          {loading ? 'Generating...' : 'Generate Notes'}
         </GenerateButton>
       </Sidebar>
 
       <NotesContainer>
-        {error && <ErrorMessage>❌ {error}</ErrorMessage>}
+        <h1>Smart Notes</h1>
+        {error && <div className="error">{error}</div>}
         
         {loading ? (
-          <div className="loading">🔮 Generating your smart notes...</div>
+          <div className="loading">Generating smart notes...</div>
         ) : notes ? (
-          <>
-            <h1>📚 Smart Notes</h1>
-            {Object.entries(notes).map(([key, value]) => (
-              <Section key={key}>
-                <h2>{key.replace(/_/g, ' ')}</h2>
-                {renderValue(value)}
-              </Section>
-            ))}
-          </>
+          <NotesContent dangerouslySetInnerHTML={{ __html: notes }} />
         ) : (
           <NoNotes>
             <div className="icon">📝</div>
@@ -350,6 +304,4 @@ const AINotes = () => {
       </NotesContainer>
     </NotesLayout>
   );
-};
-
-export default AINotes;
+}

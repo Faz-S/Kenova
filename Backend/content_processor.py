@@ -11,7 +11,7 @@ import time
 load_dotenv()
 
 class ContentProcessor:
-    def __init__(self, api_key=os.getenv("GOOGLE_API_KEY"), model_name="gemini-2.0-flash-exp", cursor=None, conn=None):
+    def __init__(self, api_key=os.getenv("GOOGLE_API_KEY"), model_name="gemini-1.5-flash", cursor=None, conn=None):
         self.file_handler = FileHandler()
         self.youtube_handler = YouTubeHandler()
         self.uploader = Uploader(api_key)
@@ -29,7 +29,6 @@ class ContentProcessor:
                 return None
 
         file_type = self.file_handler.determine_file_type(file_path)
-        print(file_type)
         if not file_type:
             print("Error: Unsupported file type.")
             return None
@@ -118,14 +117,14 @@ class ContentProcessor:
             prompt_history.append(summary)
             
             for i in history[:2]:
-                print(i)
+
                 prompt_history.append({"User":i[0],"AI":i[1]})
-            print(prompt_history)
+
             
         else:
             for i in history:
                 prompt_history.append({"User":i[0],"AI":i[1]})
-                print(prompt_history)
+
 
         prompt_template = self.get_prompt_template(file_type, prompt, prompt_history)
 

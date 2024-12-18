@@ -12,7 +12,46 @@ const AssistantContainer = styled.div`
   align-items: flex-start;
 `;
 
-const MessagesContainer = styled.div`
+const AssistantHeader = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+`;
+
+const AvatarContainer = styled.div`
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  overflow: hidden;
+  position: relative;
+  border: 2px solid ${colors.primary};
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+  }
+`;
+
+const AssistantInfo = styled.div`
+  flex: 1;
+
+  h2 {
+    margin: 0;
+    font-size: 1.4rem;
+    font-weight: 700;
+  }
+
+  p {
+    margin: 0;
+    color: ${colors.accent};
+    font-size: 0.9rem;
+  }
+`;
+
+const ChatContainer = styled.div`
   ${cardStyle}
   flex: 1;
   overflow-y: auto;
@@ -48,7 +87,7 @@ const InputContainer = styled.div`
   align-self: flex-start;
 `;
 
-const MessageInput = styled.input`
+const ChatInput = styled.input`
   ${inputStyle}
   flex: 1;
 `;
@@ -60,59 +99,46 @@ const SendButton = styled.button`
 
 const AIAssistant = ({ uploadedFile }) => {
   const [messages, setMessages] = useState([]);
-  const [userMessage, setUserMessage] = useState('');
+  const [inputValue, setInputValue] = useState('');
   const [loading, setLoading] = useState(false);
-  const messagesEndRef = useRef(null);
+  const chatContainerRef = useRef(null);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
   };
 
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!userMessage.trim() || !uploadedFile) return;
+  const handleSendMessage = async () => {
+    if (!inputValue.trim()) return;
 
+    const userMessage = inputValue.trim();
+    setInputValue('');
+    setMessages(prev => [...prev, { text: userMessage, isUser: true }]);
+
+    setLoading(true);
     try {
-      setLoading(true);
-      const formData = new FormData();
-      
-      if (uploadedFile.type === 'youtube') {
-        formData.append('url', uploadedFile.url);
-        formData.append('question', userMessage.trim());
-      } else {
-        formData.append('file', uploadedFile);
-        formData.append('question', userMessage.trim());
-      }
-
-      setMessages(prev => [...prev, { text: userMessage, isUser: true }]);
-      setUserMessage('');
-
-      const response = await fetch('http://127.0.0.1:5001/process/qa', {
+      const response = await fetch('http://localhost:5001/chat', {
         method: 'POST',
-        body: formData
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ message: userMessage }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to process request');
+        throw new Error('Failed to get response');
       }
 
       const data = await response.json();
-      if (data.error) {
-        throw new Error(data.error);
-      }
-
-      // Add AI response to chat
       setMessages(prev => [...prev, { text: data.response, isUser: false }]);
     } catch (error) {
       console.error('Error:', error);
-      setMessages(prev => [...prev, { 
-        text: 'Sorry, I encountered an error. Please try again.', 
-        isUser: false 
-      }]);
+      setMessages(prev => [...prev, { text: 'Sorry, I encountered an error. Please try again.', isUser: false }]);
     } finally {
       setLoading(false);
     }
@@ -121,33 +147,39 @@ const AIAssistant = ({ uploadedFile }) => {
   const handleKeyPress = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      handleSubmit(e);
+      handleSendMessage();
     }
   };
 
   return (
     <AssistantContainer>
-      <MessagesContainer>
+      <AssistantHeader>
+        <AvatarContainer>
+          <img src="/avatar.png" alt="AI Assistant" />
+        </AvatarContainer>
+        <AssistantInfo>
+          <h2>AI Assistant</h2>
+          <p>Always here to help</p>
+        </AssistantInfo>
+      </AssistantHeader>
+      <ChatContainer ref={chatContainerRef}>
         {messages.map((message, index) => (
           <Message key={index} isUser={message.isUser}>
             {message.text}
           </Message>
         ))}
-        <div ref={messagesEndRef} />
-      </MessagesContainer>
+      </ChatContainer>
       <InputContainer>
-        <MessageInput
-          placeholder={uploadedFile ? "Ask me anything about the content..." : "Upload content first to start chatting..."}
-          value={userMessage}
-          onChange={(e) => setUserMessage(e.target.value)}
+        <ChatInput
+          type="text"
+          placeholder="Type your message..."
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
           onKeyPress={handleKeyPress}
-          disabled={!uploadedFile || loading}
+          disabled={loading}
         />
-        <SendButton 
-          onClick={handleSubmit}
-          disabled={!uploadedFile || !userMessage.trim() || loading}
-        >
-          {loading ? '⏳' : '✉️'}
+        <SendButton onClick={handleSendMessage} disabled={loading || !inputValue.trim()}>
+          Send
         </SendButton>
       </InputContainer>
     </AssistantContainer>
