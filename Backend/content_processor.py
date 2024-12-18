@@ -11,7 +11,7 @@ import time
 load_dotenv()
 
 class ContentProcessor:
-    def __init__(self, api_key=os.getenv("GOOGLE_API_KEY"), model_name="gemini-1.5-flash", cursor=None, conn=None):
+    def __init__(self, api_key=os.getenv("GOOGLE_API_KEY"), model_name="gemini-2.0-flash-exp", cursor=None, conn=None):
         self.file_handler = FileHandler()
         self.youtube_handler = YouTubeHandler()
         self.uploader = Uploader(api_key)

@@ -226,7 +226,7 @@ def process_action(action):
         if file:
             response, status_code = process_file_request(file_path, prompt)
         elif url:
-            response, status_code = process_file_request(url, "whats in this video")
+            response, status_code = process_file_request(url, prompt)
         else:
             return jsonify({"error": "File or URL is missing"}), 400
         print(response)
@@ -237,3 +237,4 @@ def process_action(action):
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5001)
+
