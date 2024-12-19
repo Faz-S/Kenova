@@ -96,94 +96,94 @@ const SendButton = styled.button`
   ${buttonStyle}
   min-width: 100px;
 `;
+  const AIAssistant = ({ uploadedFile }) => {
+    const [messages, setMessages] = useState([]);
+    const [inputValue, setInputValue] = useState('');
+    const [loading, setLoading] = useState(false);
+    const chatContainerRef = useRef(null);
 
-const AIAssistant = ({ uploadedFile }) => {
-  const [messages, setMessages] = useState([]);
-  const [inputValue, setInputValue] = useState('');
-  const [loading, setLoading] = useState(false);
-  const chatContainerRef = useRef(null);
-
-  const scrollToBottom = () => {
-    if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
-    }
-  };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  const handleSendMessage = async () => {
-    if (!inputValue.trim()) return;
-
-    const userMessage = inputValue.trim();
-    setInputValue('');
-    setMessages(prev => [...prev, { text: userMessage, isUser: true }]);
-
-    setLoading(true);
-    try {
-      const response = await fetch('http://localhost:5001/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ message: userMessage }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to get response');
+    const scrollToBottom = () => {
+      if (chatContainerRef.current) {
+        chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
       }
+    };
 
-      const data = await response.json();
-      setMessages(prev => [...prev, { text: data.response, isUser: false }]);
-    } catch (error) {
-      console.error('Error:', error);
-      setMessages(prev => [...prev, { text: 'Sorry, I encountered an error. Please try again.', isUser: false }]);
-    } finally {
-      setLoading(false);
-    }
+    useEffect(() => {
+      scrollToBottom();
+    }, [messages]);
+
+    const handleSendMessage = async () => {
+      if (!inputValue.trim()) return;
+
+      const userMessage = inputValue.trim();
+      setInputValue('');
+      setMessages(prev => [...prev, { text: userMessage, isUser: true }]);
+
+      setLoading(true);
+      try {
+        const formData = new FormData();
+        formData.append('file', uploadedFile);
+        formData.append('message', userMessage);
+
+        const response = await fetch('http://localhost:5001/process/qa', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to get response');
+        }
+
+        const data = await response.json();
+        setMessages(prev => [...prev, { text: data.response, isUser: false }]);
+      } catch (error) {
+        console.error('Error:', error);
+        setMessages(prev => [...prev, { text: 'Sorry, I encountered an error. Please try again.', isUser: false }]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const handleKeyPress = (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        handleSendMessage();
+      }
+    };
+
+    return (
+      <AssistantContainer>
+        <AssistantHeader>
+          <AvatarContainer>
+            <img src="/avatar.png" alt="AI Assistant" />
+          </AvatarContainer>
+          <AssistantInfo>
+            <h2>AI Assistant</h2>
+            <p>Always here to help</p>
+          </AssistantInfo>
+        </AssistantHeader>
+        <ChatContainer ref={chatContainerRef}>
+          {messages.map((message, index) => (
+            <Message key={index} isUser={message.isUser}>
+              {message.text}
+            </Message>
+          ))}
+        </ChatContainer>
+        <InputContainer>
+          <ChatInput
+            type="text"
+            placeholder="Type your message..."
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            onKeyPress={handleKeyPress}
+            disabled={loading}
+          />
+          <SendButton onClick={handleSendMessage} disabled={loading || !inputValue.trim()}>
+            Send
+          </SendButton>
+        </InputContainer>
+      </AssistantContainer>
+    );
   };
 
-  const handleKeyPress = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
-    }
-  };
-
-  return (
-    <AssistantContainer>
-      <AssistantHeader>
-        <AvatarContainer>
-          <img src="/avatar.png" alt="AI Assistant" />
-        </AvatarContainer>
-        <AssistantInfo>
-          <h2>AI Assistant</h2>
-          <p>Always here to help</p>
-        </AssistantInfo>
-      </AssistantHeader>
-      <ChatContainer ref={chatContainerRef}>
-        {messages.map((message, index) => (
-          <Message key={index} isUser={message.isUser}>
-            {message.text}
-          </Message>
-        ))}
-      </ChatContainer>
-      <InputContainer>
-        <ChatInput
-          type="text"
-          placeholder="Type your message..."
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          onKeyPress={handleKeyPress}
-          disabled={loading}
-        />
-        <SendButton onClick={handleSendMessage} disabled={loading || !inputValue.trim()}>
-          Send
-        </SendButton>
-      </InputContainer>
-    </AssistantContainer>
-  );
-};
-
-export default AIAssistant;
+  export default AIAssistant;
