@@ -8,8 +8,8 @@ from botocore.exceptions import NoCredentialsError
 load_dotenv()
 
 
-AWS_ACCESS_KEY = "AKIAS2VS4IQSFGM2PUA5"
-AWS_SECRET_KEY = "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"
+AWS_ACCESS_KEY = os.getenv("aws_access_key_id")
+AWS_SECRET_KEY = os.getenv("aws_secret_access_key")
 AWS_BUCKET_NAME = "edusage-bucket"
 AWS_REGION = "ap-south-1"
 
