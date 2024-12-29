@@ -4,12 +4,16 @@ from content_processor import ContentProcessor
 import os
 import psycopg2
 import re
+from dotenv import load_dotenv
 import google.generativeai as genai
+
+
+
+load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
-
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:1234@localhost:5432/content_database")
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:DanielDas2004@edusage-database.cp6gyg0soaec.ap-south-1.rds.amazonaws.com:5432/edusage-database")
 
 conn = psycopg2.connect(DATABASE_URL)
 cursor = conn.cursor()
@@ -32,7 +36,8 @@ def process_file_request(file_path, prompt):
             print("Reusing previously processed file.")
         else:
             def is_youtube_url(url):
-                return re.match(r"(https?://)?(www\\.)?(youtube\\.com|youtu\\.be)/.+", url)
+            
+                return re.match(r"(www\\.)?(youtube\\.com|youtu\\.be)/.+", url)
 
             if is_youtube_url(file_path):
                 file_type = "video"
@@ -59,7 +64,7 @@ def process_file_request(file_path, prompt):
 
                 cursor.execute(
                     "INSERT INTO files (file_path, file_type, uploaded, upload_id) VALUES (%s, %s, %s, %s)",
-                    (full_file_path, file_type, True, upload_id)
+                    (file_path, file_type, True, upload_id)
                 )
                 conn.commit()
 
@@ -73,7 +78,7 @@ def process_file_request(file_path, prompt):
         if response:
             cursor.execute(
                 "INSERT INTO responses (file_path, prompt, response) VALUES (%s, %s, %s)",
-                (full_file_path, prompt, response)
+                (file_path, prompt, response)
             )
             conn.commit()
             return {"response": response}, 200
