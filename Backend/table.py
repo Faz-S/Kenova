@@ -7,7 +7,6 @@ host=os.getenv("DB_HOST")
 dbname=os.getenv("DB_NAME")
 user=os.getenv("DB_USER")
 password=os.getenv("DB_PASSWORD")
-# port value should be integer
 port=os.getenv("DB_PORT")
 
 conn = psycopg2.connect(
@@ -18,10 +17,10 @@ conn = psycopg2.connect(
     port=port
 )
 
-
 cur=conn.cursor()
+
 cur.execute("""
-    CREATE TABLE files (
+    CREATE TABLE IF NOT EXISTS files (
         id SERIAL PRIMARY KEY,
         file_path TEXT UNIQUE NOT NULL,
         file_type TEXT NOT NULL,
@@ -30,7 +29,8 @@ cur.execute("""
     );
 """)
 
-cur.execute("""CREATE TABLE responses (
+
+cur.execute("""CREATE TABLE IF NOT EXISTS responses (
     id SERIAL PRIMARY KEY,
     file_path TEXT NOT NULL,
     prompt TEXT NOT NULL,
@@ -43,3 +43,4 @@ cur.execute("""CREATE TABLE responses (
 conn.commit()
 cur.close()
 conn.close()
+

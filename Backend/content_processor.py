@@ -20,7 +20,7 @@ class ContentProcessor:
         self.cursor = cursor
         self.conn = conn
 
-    def upload_file(self, file_path):
+    def upload_file(self, file_path,s3_file_path):
         yt_path = None
         if self.youtube_handler.is_youtube_url(file_path):
             print("Detected YouTube video.")
@@ -35,11 +35,13 @@ class ContentProcessor:
             print("Error: Unsupported file type.")
             return None
 
-        if not os.path.exists(file_path):
-            print(f"Error: File not found at {file_path}. Please check the path and try again.")
-            return None
+        # if not os.path.exists(file_path):
+        # print(f"Error: File not found at {file_path}. Please check the path and try again.")
+        # return None
+        
+        file_stream = self.uploader.get_file_stream_from_s3(s3_file_path)
 
-        uploaded_file = self.uploader.upload_file(file_path, file_type)
+        uploaded_file=self.uploader.upload_file_stream(file_stream, file_type,s3_file_path)
         upload_id = uploaded_file.uri.split("/")[-1]
         return uploaded_file, file_type, file_path,upload_id
 

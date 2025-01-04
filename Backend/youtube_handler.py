@@ -1,7 +1,7 @@
-
 import os
 import yt_dlp
 from dotenv import load_dotenv
+import re
 
 load_dotenv()
 
@@ -10,7 +10,7 @@ class YouTubeHandler:
 
     @staticmethod
     def is_youtube_url(file_path):
-        return file_path.startswith("http://") or file_path.startswith("https://")
+        return re.match(r"(www\\.)?(youtube\\.com|youtu\\.be)/.+", file_path)
 
     @classmethod
     def download_youtube_video(cls, url, output_dir="db", output_filename="downloaded_video"):

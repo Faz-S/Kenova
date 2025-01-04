@@ -8,14 +8,14 @@ from botocore.exceptions import NoCredentialsError
 load_dotenv()
 
 
-AWS_ACCESS_KEY = os.getenv("aws_access_key_id")
-AWS_SECRET_KEY = os.getenv("aws_secret_access_key")
-AWS_BUCKET_NAME = "edusage-bucket"
-AWS_REGION = "ap-south-1"
+AWS_ACCESS_KEY = os.getenv("AWS_ACCESS_KEY")
+AWS_SECRET_KEY = os.getenv("AWS_SECRET_KEY")
+AWS_BUCKET_NAME = os.getenv("AWS_BUCKET_NAME")
+AWS_REGION = os.getenv("AWS_REGION")
 
 
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:DanielDas2004@edusage-database.cp6gyg0soaec.ap-south-1.rds.amazonaws.com:5432/edusage-database")
-
+print(AWS_ACCESS_KEY,AWS_SECRET_KEY)
 
 s3 = boto3.client(
     's3',
@@ -27,8 +27,10 @@ s3 = boto3.client(
 
 def upload_file_to_s3(file_path, bucket_name, object_name):
     try:
-        s3.upload_file(file_path, bucket_name, object_name)
-        s3_url = f"https://{bucket_name}.s3.{AWS_REGION}.amazonaws.com/{object_name}"
+        print(file_path,bucket_name,object_name)
+        s3.upload_file(file_path, AWS_BUCKET_NAME, object_name)
+        print("IIIIII")
+        s3_url = f"https://{file_path}.s3.{AWS_REGION}.amazonaws.com/{object_name}"
         print(f"File uploaded successfully: {s3_url}")
         return s3_url
     except FileNotFoundError:
@@ -41,11 +43,9 @@ def upload_file_to_s3(file_path, bucket_name, object_name):
 
 def insert_file_path_to_rds(file_url, file_type):
     try:
-        # Connect to PostgreSQL RDS
         conn = psycopg2.connect(DATABASE_URL)
         cur = conn.cursor()
-        
-        # Ensure the table exists
+   
         cur.execute("""
         CREATE TABLE IF NOT EXISTS files (
             id SERIAL PRIMARY KEY,
@@ -55,8 +55,7 @@ def insert_file_path_to_rds(file_url, file_type):
             upload_id TEXT
         );
         """)
-        
-        # Insert the file URL into the table
+
         cur.execute("""
         INSERT INTO files (file_path, file_type, uploaded) 
         VALUES (%s, %s, %s)
@@ -65,8 +64,7 @@ def insert_file_path_to_rds(file_url, file_type):
         conn.commit()
         
         print(f"File URL inserted into RDS: {file_url}")
-        
-        # Close the connection
+  
         cur.close()
         conn.close()
     except Exception as e:
@@ -77,11 +75,9 @@ def retrieve_s3_file_content(bucket_name, s3_file_key):
     try:
      
         s3 = boto3.client('s3')
-        
-        # Get the object from S3
+
         response = s3.get_object(Bucket=bucket_name, Key=s3_file_key)
-        
-        # Read the file content
+
         file_content = response['Body'].read()
         print("File content retrieved successfully.")
         
@@ -91,14 +87,14 @@ def retrieve_s3_file_content(bucket_name, s3_file_key):
         return None
 
 
-if __name__ == "__main__":
+# if __name__ == "__main__":
 
-    file_path = "a.pdf"
-    object_name = "s.pdf"  
+#     file_path = "/Users/danieldas/Downloads/DOC-20240926-WA0014.pdf"
+#     object_name = "s.pdf"  
 
-    s3_url = upload_file_to_s3(file_path, AWS_BUCKET_NAME, object_name)
+#     s3_url = upload_file_to_s3(file_path, AWS_BUCKET_NAME, object_name)
     
-    if s3_url:
-        insert_file_path_to_rds(s3_url,"text")
-    content = retrieve_s3_file_content(AWS_BUCKET_NAME, object_name)
-    print(content)
+#     if s3_url:
+#         insert_file_path_to_rds(s3_url,"text")
+#     content = retrieve_s3_file_content(AWS_BUCKET_NAME, object_name)
+#     print(content)

@@ -6,6 +6,7 @@ import psycopg2
 import re
 from dotenv import load_dotenv
 import google.generativeai as genai
+from aws import upload_file_to_s3, insert_file_path_to_rds,retrieve_s3_file_content
 
 load_dotenv()
 
@@ -20,7 +21,7 @@ processor = ContentProcessor(api_key=os.getenv("GOOGLE_API_KEY"), cursor=cursor,
 
 cache = {}
 
-def process_file_request(file_path, prompt):
+def process_file_request(file_path, s3_file_path, prompt):
     global cache
     try:
         if not file_path:
@@ -56,7 +57,8 @@ def process_file_request(file_path, prompt):
                 uploaded_file = genai.get_file(upload_id)
             else:
                 print("Processing new file.")
-                uploaded_file, file_type, full_file_path, upload_id = processor.upload_file(file_path)
+                print(file_path,s3_file_path,"DEIOIIIIIIII")
+                uploaded_file, file_type, full_file_path, upload_id = processor.upload_file(file_path,s3_file_path=s3_file_path)
                 if not uploaded_file:
                     return {"error": "File upload/processing failed"}, 500
 
@@ -92,7 +94,9 @@ def process_file_request(file_path, prompt):
 def process_action(action):
     try:
         file = request.files.get('file')
+        print(file)
         question = request.form.get('message')
+        print(question,"GGGGGGGGGg")
         url = request.form.get('url')
 
         if action not in ['qa', 'notes', 'flashcards', 'summary', 'keypoints', 'quiz']:
@@ -103,8 +107,12 @@ def process_action(action):
 
         if file:
             file_path = file.filename
+            print(file_path)
             file_path = "uploads/"+ file_path 
             file.save(file_path)
+            file_url = upload_file_to_s3(file_path, "edusage-bucket", file_path)
+            print(file_url)
+            file = retrieve_s3_file_content("edusage-bucket", file_path)
 
         prompts = {
             "qa": question,
@@ -217,9 +225,8 @@ def process_action(action):
 
         prompt = prompts[action]
         if file:
-            response, status_code = process_file_request(file_path, prompt)
+            response, status_code = process_file_request(file_url,file_path, prompt)
         elif url:
-           
             response, status_code = process_file_request(url, prompt)
         else:
             return jsonify({"error": "File or URL is missing"}), 400
@@ -231,3 +238,5 @@ def process_action(action):
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5001)
+
+
