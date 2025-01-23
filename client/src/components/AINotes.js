@@ -241,7 +241,7 @@ export default function AINotes() {
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await fetch('http://localhost:5001/process/notes', {
+      const response = await fetch('http://localhost:5002/process/notes', {
         method: 'POST',
         body: formData,
       });

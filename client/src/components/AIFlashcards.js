@@ -280,7 +280,7 @@ export default function AIFlashcards() {
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await fetch('http://localhost:5001/process/flashcards', {
+      const response = await fetch('http://localhost:5002/process/flashcards', {
         method: 'POST',
         body: formData,
       });

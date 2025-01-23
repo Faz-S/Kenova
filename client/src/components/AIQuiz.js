@@ -621,7 +621,7 @@ const AIQuiz = () => {
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await fetch('http://localhost:5001/process/quiz', {
+      const response = await fetch('http://localhost:5002/process/quiz', {
         method: 'POST',
         body: formData,
       });

@@ -702,7 +702,7 @@ function Content({ onFileSelect }) {
         }
 
         try {
-            const response = await fetch('http://127.0.0.1:5001/process/qa', {
+            const response = await fetch('http://127.0.0.1:5002/process/qa', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

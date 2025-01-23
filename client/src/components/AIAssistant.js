@@ -125,7 +125,7 @@ const SendButton = styled.button`
         formData.append('file', uploadedFile);
         formData.append('message', userMessage);
 
-        const response = await fetch('http://localhost:5001/process/qa', {
+        const response = await fetch('http://localhost:5002/process/qa', {
           method: 'POST',
           body: formData,
         });

@@ -34,7 +34,7 @@ processor = ContentProcessor(api_key=os.getenv("GOOGLE_API_KEY"), cursor=cursor,
 cache = {}
 
 def process_file(file_path):
-    image_dir = "images/"
+    image_dir = "image/"
     print("Image directory:", image_dir)
     
     if not os.path.exists(file_path):

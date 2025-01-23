@@ -245,7 +245,7 @@ export default function AIKeyPoints() {
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await fetch('http://localhost:5001/process/keypoints', {
+      const response = await fetch('http://localhost:5002/process/keypoints', {
         method: 'POST',
         body: formData,
       });
