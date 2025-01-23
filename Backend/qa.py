@@ -13,6 +13,7 @@ from autogen import config_list_from_json
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_chroma import Chroma
 from langchain.text_splitter import RecursiveCharacterTextSplitter
+import time
 
 app = Flask(__name__)
 CORS(app)
@@ -26,10 +27,17 @@ class CustomEmbeddingFunction:
 
 class QuestionPaperGenerator:
     def __init__(self,file):
-
-        unique_id=uuid.uuid4() 
-        self.CHROMA_DB_PATH = f"/tmp/chroma.db-{unique_id}"
-        self.CHROMA_COLLECTION = "autogen-docs-test"
+        self.uuid = str(uuid.uuid4())
+        self.CHROMA_DB_PATH = f"./chroma_db_{self.uuid}"
+        self.CHROMA_COLLECTION = f"autogen_docs_{self.uuid}"
+        
+        # Ensure database directory exists
+        try:
+            os.makedirs(self.CHROMA_DB_PATH, exist_ok=True)
+        except OSError as e:
+            print(f"Error creating ChromaDB directory: {e}")
+            raise
+            
         self.file = file
         
         # Setup configurations
@@ -53,19 +61,50 @@ class QuestionPaperGenerator:
         }
 
     def setup_database(self):
-        self.chroma_client = chromadb.PersistentClient(path=self.CHROMA_DB_PATH)
-        self.collection = self.chroma_client.get_or_create_collection(name=self.CHROMA_COLLECTION)
-
-        self.embeddings = GoogleGenerativeAIEmbeddings(
-            model=os.getenv("EMBEDDING"),
-            google_api_key=os.getenv("GOOGLE_API_KEY"),
-        )
-        self.custom_embedding = CustomEmbeddingFunction(embedding_model=self.embeddings)
-        self.vector_db = Chroma(embedding_function=self.custom_embedding)
+        """Setup ChromaDB with unique collection and persistent storage"""
+        try:
+            # Initialize ChromaDB client with retry mechanism
+            max_retries = 3
+            retry_delay = 1  # seconds
+            
+            for attempt in range(max_retries):
+                try:
+                    self.chroma_client = chromadb.PersistentClient(path=self.CHROMA_DB_PATH)
+                    self.collection = self.chroma_client.get_or_create_collection(
+                        name=self.CHROMA_COLLECTION,
+                        metadata={"uuid": self.uuid}
+                    )
+                    break
+                except Exception as e:
+                    if attempt == max_retries - 1:
+                        raise
+                    print(f"Attempt {attempt + 1} failed, retrying in {retry_delay} seconds...")
+                    time.sleep(retry_delay)
+            
+            # Setup embeddings
+            self.embeddings = GoogleGenerativeAIEmbeddings(
+                model=os.getenv("EMBEDDING"),
+                google_api_key=os.getenv("GOOGLE_API_KEY"),
+            )
+            self.custom_embedding = CustomEmbeddingFunction(embedding_model=self.embeddings)
+            self.vector_db = Chroma(
+                embedding_function=self.custom_embedding,
+                collection_name=self.CHROMA_COLLECTION,
+                persist_directory=self.CHROMA_DB_PATH
+            )
+            
+        except Exception as e:
+            print(f"Error setting up ChromaDB: {str(e)}")
+            # Cleanup on failure
+            if hasattr(self, 'chroma_client'):
+                try:
+                    self.chroma_client.delete_collection(self.CHROMA_COLLECTION)
+                except:
+                    pass
+            raise
 
     def create_agents(self):
         text_splitter = RecursiveCharacterTextSplitter(separators=["\n\n", "\n", "\r", "\t"])
-        print(self.file,"*"* 1000)
  
         self.ragproxyagent = RetrieveUserProxyAgent(
             name="ragproxyagent",
@@ -186,29 +225,141 @@ class QuestionPaperGenerator:
         self.short_answer = AssistantAgent(
             name="2_marks",
             is_termination_msg=self.termination_msg,
-            system_message="Based on the retrieved content for the topics: [List of Retrieved Topics and Content], generate 2-mark short-answer questions focusing on *Remembering* and *Understanding*.",
+            system_message="""Generate exactly 10 short-answer questions worth 2 marks each, focusing on Remember and Understand levels of Bloom's Taxonomy.
+            Each question should be directly related to the content in the document.
+            Format each question as:
+            {
+                "question_number": <number>,
+                "question_text": "<question>",
+                "marks": 2
+            }
+            """,
             llm_config=self.llm_config,
         )
         
         self.long_answer =AssistantAgent(
             name="10_marks",
             is_termination_msg=self.termination_msg,
-            system_message="Based on the retrieved content for the topics: [List of Retrieved Topics and Content], generate 13-mark long-answer questions that require *Evaluation* or *Creation*.",
+            system_message="""Generate exactly 5 long-answer questions worth 13 marks each, focusing on Evaluate and Create levels of Bloom's Taxonomy.
+            Each question should require detailed explanations, derivations, or critical analysis.
+            Format each question as:
+            {
+                "question_number": <number>,
+                "question_text": "<question>",
+                "marks": 13
+            }
+            """,
             llm_config=self.llm_config,
         )
         
         self.case_study = AssistantAgent(
             name="case_study",
             is_termination_msg=self.termination_msg,
-            system_message="""You are a Case Study Generation Agent. Based on the retrieved content for the topics: [List of Retrieved Topics and Content], generate 15-mark case study question, create a concise and structured case study that includes:
+            system_message="""Generate exactly 1 case study worth 15 marks that includes:
+            {
+                "section_title": "Case Study",
+                "total_marks": 15,
+                "background": "<brief scenario background>",
+                "problem_statement": "<clear problem description>",
+                "supporting_data": [
+                    "<data point 1>",
+                    "<data point 2>",
+                    "<data point 3>"
+                ],
+                "questions": [
+                    {
+                        "question_number": 1,
+                        "question_text": "<question>",
+                        "marks": <marks>
+                    }
+                ]
+            }
+            The case study should be practical and encourage critical thinking.""",
+            llm_config=self.llm_config,
+        )
 
-            Back-Ground: A brief background of the scenario.
-            Problem Statement: A clear description of the challenge.
-            Supporting Data: Relevant information, diagrams, or examples.
-            Questions: Thought-provoking questions that require learners to analyze, evaluate, and create solutions based on the scenario.(15 marks - Total)
-            Ensure the case study is practical, aligned with the context, and encourages critical thinking.""",
+        self.json_formater = AssistantAgent(
+            name="json_formater",
+            system_message="""Format the question paper into valid JSON. Do not add any additional text or quotes around the JSON.
+            The output should be exactly in this format:
+            {
+                "title": string,
+                "instructions": string[],
+                "total_marks": number,
+                "sections": [
+                    {
+                        "section_title": string,
+                        "total_marks": number,
+                        "questions": [
+                            {
+                                "question_number": number,
+                                "question_text": string,
+                                "marks": number
+                            }
+                        ]
+                    },
+                    {
+                        "section_title": "Case Study",
+                        "total_marks": number,
+                        "background": string,
+                        "problem_statement": string,
+                        "supporting_data": string[],
+                        "questions": [
+                            {
+                                "question_number": number,
+                                "question_text": string,
+                                "marks": number
+                            }
+                        ]
+                    }
+                ]
+            }""",
+            llm_config=self.llm_config
+        )
 
-             llm_config=self.llm_config,
+        self.final_paper = AssistantAgent(
+            name="Question_format",
+            system_message="""Organize the questions into a finalized question paper with exactly this structure:
+            {
+                "title": "<subject> Examination",
+                "instructions": [
+                    "All questions are compulsory",
+                    "<other relevant instructions>"
+                ],
+                "total_marks": 100,
+                "sections": [
+                    {
+                        "section_title": "Short-Answer Questions",
+                        "total_marks": 20,
+                        "questions": [<questions from short_answer agent>]
+                    },
+                    {
+                        "section_title": "Long-Answer Questions",
+                        "total_marks": 65,
+                        "questions": [<questions from long_answer agent>]
+                    },
+                      {
+                "section_title": "Case Study",
+                "total_marks": 15,
+                "background": "<brief scenario background>",
+                "problem_statement": "<clear problem description>",
+                "supporting_data": [
+                    "<data point 1>",
+                    "<data point 2>",
+                    "<data point 3>"
+                ],
+                "questions": [
+                    {
+                        "question_number": 1,
+                        "question_text": "<question>",
+                        "marks": <marks>
+                    }
+                ]
+            }
+                ]
+            }
+            """,
+            llm_config=self.llm_config
         )
 
     def setup_group_chat(self):
@@ -244,7 +395,6 @@ class QuestionPaperGenerator:
 
     @staticmethod
     def get_problem():
-        """Get the problem statement."""
         return """From the provided document, extract the most relevant topics and subtopics. 
         For each topic, retrieve the corresponding explanations, definitions, or related content. 
         Focus on identifying both *factual* and *conceptual* content that could span across 
@@ -258,38 +408,15 @@ class QuestionPaperGenerator:
         with a total of 100 marks.
         Ensure the format is clear and questions are categorized by type and difficulty."""
 
-    # def generate_pdf(self, content, output_path):
-    #     """Generate PDF from the question paper content."""
-    #     pdf_buffer = io.BytesIO()
-    #     c = canvas.Canvas(pdf_buffer, pagesize=letter)
-    #     width, height = letter
-
-    #     # Set title
-    #     c.setFont("Helvetica-Bold", 12)
-    #     c.drawString(100, height - 40, "Generated Question Paper")
-        
-        # Set content
-        # c.setFont("Helvetica", 10)
-        # wrapped_text = wrap(content, width=90)
-        # y_position = height - 60
-        
-        # for line in wrapped_text:
-        #     c.drawString(100, y_position, line)
-        #     y_position -= 12
-        #     if y_position < 40:
-        #         c.showPage()
-        #         c.setFont("Helvetica", 10)
-        #         y_position = height - 40
-
-        # c.showPage()
-        # c.save()
-        # pdf_buffer.seek(0)
-
-        # # Save PDF
-        # os.makedirs(os.path.dirname(output_path), exist_ok=True)
-        # with open(output_path, "wb") as f:
-        #     f.write(pdf_buffer.getvalue())
-
+    def __del__(self):
+        try:
+            if hasattr(self, 'chroma_client'):
+                self.chroma_client.delete_collection(self.CHROMA_COLLECTION)
+            if os.path.exists(self.CHROMA_DB_PATH):
+                import shutil
+                shutil.rmtree(self.CHROMA_DB_PATH)
+        except:
+            pass
 
 # @app.route('/run', methods=['GET', 'POST'])
 # def run():

@@ -34,7 +34,7 @@ processor = ContentProcessor(api_key=os.getenv("GOOGLE_API_KEY"), cursor=cursor,
 cache = {}
 
 def process_file(file_path):
-    image_dir = "image/"
+    image_dir = "images/"
     print("Image directory:", image_dir)
     
     if not os.path.exists(file_path):
@@ -43,7 +43,7 @@ def process_file(file_path):
     if os.path.exists(image_dir) and os.path.isdir(image_dir):
         image_files = [f for f in os.listdir(image_dir) if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
         if image_files:
-            image_path = os.path.join(image_dir, image_files[3])
+            image_path = os.path.join(image_dir, image_files[4])
             print(f"Using image file: {image_path}")
             image_generator = ImageCaseStudyGenerator(file_path, image_path)
             print("Generating Image QA")
