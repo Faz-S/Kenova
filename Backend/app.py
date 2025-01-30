@@ -350,6 +350,24 @@ def process_action(action):
                - Ensure questions are challenging but fair
                - Provide plausible distractors for incorrect options
                - If no clear content is available, return a JSON array with an error message object
+               Analyze the provided file and generate at least 10 multiple-choice questions (MCQs) in strict JSON format. 
+               Each question MUST follow this exact structure:
+
+               Format the output as a JSON array within markdown code blocks, like this:
+               ```json
+
+               {
+                   "question": "A clear, concise question based on key concepts from the file",
+                   "options": {
+                       "A": "First option text",
+                       "B": "Second option text", 
+                       "C": "Third option text",
+                       "D": "Fourth option text"
+                   },
+                   "correct_answer": "The letter of the correct option (A, B, C, or D)"
+                   "explanation": "An explanation of the correct answer and how it relates to the question"
+                   "marks":2
+               }
                Example output:
                [
                    {
@@ -362,8 +380,10 @@ def process_action(action):
                        },
                        "correct_answer": "B"
                        "explanation": "Machine learning uses data to learn patterns and make predictions without being explicitly programmed."
+                       "marks":2
                    }
                ]
+               ```
                """
         }
         if action not in prompts:
@@ -382,107 +402,107 @@ def process_action(action):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route('/process/quiz', methods=['POST'])
-def process_quiz():
-    if 'file' not in request.files:
-        return jsonify({'error': 'No file part'}), 400
+# @app.route('/process/quiz', methods=['POST'])
+# def process_quiz():
+#     if 'file' not in request.files:
+#         return jsonify({'error': 'No file part'}), 400
     
-    file = request.files['file']
-    if file.filename == '':
-        return jsonify({'error': 'No selected file'}), 400
+#     file = request.files['file']
+#     if file.filename == '':
+#         return jsonify({'error': 'No selected file'}), 400
 
-    if file and allowed_file(file.filename):
-        try:
-            # Save the file temporarily
-            filename = secure_filename(file.filename)
-            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            file.save(filepath)
+#     if file and allowed_file(file.filename):
+#         try:
+#             # Save the file temporarily
+#             filename = secure_filename(file.filename)
+#             filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+#             file.save(filepath)
 
-            # Upload to S3
-            s3_file_path = f"uploads/{filename}"
-            s3_url = upload_file_to_s3(filepath, "edusage-bucket", s3_file_path)
+#             # Upload to S3
+#             s3_file_path = f"uploads/{filename}"
+#             s3_url = upload_file_to_s3(filepath, "edusage-bucket", s3_file_path)
             
-            if not s3_url:
-                return jsonify({'error': 'Failed to upload file to S3'}), 500
+#             if not s3_url:
+#                 return jsonify({'error': 'Failed to upload file to S3'}), 500
 
-            # Extract text and generate questions
-            pdf_text = extract_text_from_pdf(filepath)
-            questions = generate_mcq_questions(pdf_text)
+#             # Extract text and generate questions
+#             pdf_text = extract_text_from_pdf(filepath)
+#             questions = generate_mcq_questions(pdf_text)
             
-            # Clean up the temporary file
-            os.remove(filepath)
+#             # Clean up the temporary file
+#             os.remove(filepath)
             
-            return jsonify({'response': questions})
-        except Exception as e:
-            print(f"Error processing file: {str(e)}")
-            return jsonify({'error': str(e)}), 500
+#             return jsonify({'response': questions})
+#         except Exception as e:
+#             print(f"Error processing file: {str(e)}")
+#             return jsonify({'error': str(e)}), 500
     
-    return jsonify({'error': 'Invalid file type'}), 400
+#     return jsonify({'error': 'Invalid file type'}), 400
 
-def generate_mcq_questions(text):
-    try:
-        api_key = os.getenv('GOOGLE_API_KEY')
-        if not api_key:
-            raise Exception("API key not found in environment variables")
+# def generate_mcq_questions(text):
+#     try:
+#         api_key = os.getenv('GOOGLE_API_KEY')
+#         if not api_key:
+#             raise Exception("API key not found in environment variables")
 
-        genai.configure(api_key=api_key)
-        model = genai.GenerativeModel('gemini-pro')
+#         genai.configure(api_key=api_key)
+#         model = genai.GenerativeModel('gemini-pro')
         
-        prompt = """Generate 10 multiple choice questions from the following text. 
-        For each question:
-        1. Include the question text
-        2. Provide 4 options labeled A, B, C, D
-        3. Specify the correct answer (A, B, C, or D)
-        4. Include a brief explanation of why the answer is correct
-        5. Assign marks (1-5 based on difficulty)
-        Guidelines:
-        - Generate questions that cover different aspects of the document
-        - Ensure questions are challenging but fair
-        - Provide plausible distractors for incorrect options
-        - If no clear content is available, return a JSON array with an error message object
-        Analyze the provided file and generate at least 10 multiple-choice questions (MCQs) in strict JSON format. 
-        Each question MUST follow this exact structure:
+#         prompt = """Generate 10 multiple choice questions from the following text. 
+#         For each question:
+#         1. Include the question text
+#         2. Provide 4 options labeled A, B, C, D
+#         3. Specify the correct answer (A, B, C, or D)
+#         4. Include a brief explanation of why the answer is correct
+#         5. Assign marks (1-5 based on difficulty)
+#         Guidelines:
+#         - Generate questions that cover different aspects of the document
+#         - Ensure questions are challenging but fair
+#         - Provide plausible distractors for incorrect options
+#         - If no clear content is available, return a JSON array with an error message object
+#         Analyze the provided file and generate at least 10 multiple-choice questions (MCQs) in strict JSON format. 
+#         Each question MUST follow this exact structure:
 
-        Format the output as a JSON array within markdown code blocks, like this:
-        ```json
+#         Format the output as a JSON array within markdown code blocks, like this:
+#         ```json
 
-        {
-            "question": "A clear, concise question based on key concepts from the file",
-            "options": {
-                "A": "First option text",
-                "B": "Second option text", 
-                "C": "Third option text",
-                "D": "Fourth option text"
-            },
-            "correct_answer": "The letter of the correct option (A, B, C, or D)"
-            "explanation": "An explanation of the correct answer and how it relates to the question"
-            "marks":2
-        }
-        Example output:
-        [
-            {
-                "question": "What is the primary purpose of machine learning?",
-                "options": {
-                    "A": "To replace human programmers",
-                    "B": "To learn and improve from data",
-                    "C": "To create complex algorithms",
-                    "D": "To generate random predictions"
-                },
-                "correct_answer": "B"
-                "explanation": "Machine learning uses data to learn patterns and make predictions without being explicitly programmed."
-                "marks":2
-            }
-        ]
-        ```
-               """
+#         {
+#             "question": "A clear, concise question based on key concepts from the file",
+#             "options": {
+#                 "A": "First option text",
+#                 "B": "Second option text", 
+#                 "C": "Third option text",
+#                 "D": "Fourth option text"
+#             },
+#             "correct_answer": "The letter of the correct option (A, B, C, or D)"
+#             "explanation": "An explanation of the correct answer and how it relates to the question"
+#             "marks":2
+#         }
+#         Example output:
+#         [
+#             {
+#                 "question": "What is the primary purpose of machine learning?",
+#                 "options": {
+#                     "A": "To replace human programmers",
+#                     "B": "To learn and improve from data",
+#                     "C": "To create complex algorithms",
+#                     "D": "To generate random predictions"
+#                 },
+#                 "correct_answer": "B"
+#                 "explanation": "Machine learning uses data to learn patterns and make predictions without being explicitly programmed."
+#                 "marks":2
+#             }
+#         ]
+#         ```
+#                """
 
-        response = model.generate_content(prompt)
-        print(response.text)
-        return response.text
+#         response = model.generate_content(prompt)
+#         print(response.text)
+#         return response.text
 
-    except Exception as e:
-        print(f"Error generating questions: {str(e)}")
-        raise e
+#     except Exception as e:
+#         print(f"Error generating questions: {str(e)}")
+#         raise e
 
 def extract_text_from_pdf(file_path):
     pdf_file = open(file_path, 'rb')
@@ -550,6 +570,42 @@ def submit_answer():
             'status': 'error',
             'message': str(e)
         }), 500
+
+@app.route('/upload', methods=['POST'])
+def upload_file():
+    if 'file' not in request.files:
+        return jsonify({"error": "No file part"}), 400
+    
+    file = request.files['file']
+    
+    if file.filename == '':
+        return jsonify({"error": "No selected file"}), 400
+    
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(filepath)
+        
+        try:
+            # Get bucket name from environment variable
+            bucket_name = os.getenv("AWS_BUCKET_NAME", "edusage-bucket")
+            
+            # Upload to S3
+            s3_file_path = f"uploads/{filename}"
+            s3_url = upload_file_to_s3(filepath, bucket_name, s3_file_path)
+            
+            # Insert file path to RDS
+            insert_file_path_to_rds(s3_url, "pdf")
+            
+            return jsonify({
+                "message": "File uploaded successfully", 
+                "url": s3_url,
+                "filename": filename
+            }), 200
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+    
+    return jsonify({"error": "File type not allowed"}), 400
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5002)

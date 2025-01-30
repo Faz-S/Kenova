@@ -4,22 +4,31 @@ import FileUploadGreen from '../components/smart-notes/FileUploadGreen';
 import KeypointsDisplay from '../components/revise/KeypointsDisplay';
 import PageTemplate from '../components/PageTemplate';
 import { ReviseProvider, useRevise } from '../contexts/ReviseContext';
+import ScanningAnimation from '../components/ScanningAnimation';
+import { useState } from 'react';
 
 function ReviseContent() {
   const { sources, keypoints, isProcessing, addSource, removeSource, setKeypoints, setIsProcessing } = useRevise();
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  const handleFilesSelected = async (files: File[]) => {
+  const handleFilesSelected = (files: File[]) => {
     if (sources.length > 0) {
       return; // Don't add more files if we already have one
     }
     
     const file = files[0]; // Only take the first file
+    setSelectedFile(file);
+  };
+
+  const handleUpload = async () => {
+    if (!selectedFile) return;
+
     const source = {
       id: Math.random().toString(36).substr(2, 9),
-      name: file.name,
-      size: file.size,
-      type: file.type,
-      file: file
+      name: selectedFile.name,
+      size: selectedFile.size,
+      type: selectedFile.type,
+      file: selectedFile
     };
     addSource(source);
 
@@ -27,7 +36,7 @@ function ReviseContent() {
     setIsProcessing(true);
     try {
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append('file', selectedFile);
 
       const response = await fetch('http://localhost:5002/process/keypoints', {
         method: 'POST',
@@ -66,13 +75,13 @@ function ReviseContent() {
   };
 
   return (
-    <div className="pt-20 px-4 md:px-8">
-      <div className="flex gap-6">
+    <div className="pt-20 lg:pt-[6.3rem] px-4 md:px-8 text-sm md:text-base lg:text-lg" style={{ fontFamily: 'var(--font-courier-prime)' }} >
+      <div className="grid grid-cols-1 lg:grid-cols-[288px_1fr] gap-6 max-w-[1400px] mx-auto">
         {/* Left Section - Sources */}
-        <div className="w-72">
-          <div className="border-2 border-black h-[calc(90vh-80px)]">
-            <div className="p-4">
-              <h2 className="text-lg font-bold mb-4">Sources</h2>
+        <div className="">
+          <div className="border-2 border-black lg:h-[calc(90vh-80px)] h-auto">
+            <div className="p-4 ">
+              <h1 className="text-base sm:text-lg font-bold mb-4">Sources</h1>
               <FileUploadGreen
                 onFilesSelected={handleFilesSelected}
                 onFileRemove={removeSource}
@@ -81,26 +90,37 @@ function ReviseContent() {
                 acceptedFileTypes={['.pdf']}
                 disabled={sources.length > 0}
               />
+              {selectedFile && !sources.length && (
+                <div className="mt-4">
+                  <p className="text-xs sm:text-sm mb-2 truncate">Selected: {selectedFile.name}</p>
+                  <button 
+                    onClick={handleUpload}
+                    className="w-full py-2 bg-black text-white hover:bg-gray-800 transition-colors text-xs sm:text-sm"
+                  >
+                    Upload and Generate
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
 
         {/* Right Section - Revision */}
-        <div className="flex-1">
+        <div className="">
           <div className="border-2 border-black h-[calc(90vh-80px)] bg-white">
             <div className="p-6 h-full flex flex-col">
-              <h2 className="text-lg font-bold mb-4">Revision</h2>
+              <h1 className="text-base sm:text-lg font-bold mb-4">Revision</h1>
               <div className="flex-1 overflow-y-auto">
                 {isProcessing ? (
                   <div className="flex items-center justify-center h-full">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
+                    <ScanningAnimation />
                   </div>
                 ) : keypoints ? (
                   <div className="bg-white rounded-lg h-full">
                     <KeypointsDisplay content={keypoints} />
                   </div>
                 ) : (
-                  <div className="flex items-center justify-center h-full text-gray-500">
+                  <div className="flex items-center justify-center h-full text-gray-500 text-sm sm:text-base">
                     Upload a file to generate revision keypoints
                   </div>
                 )}

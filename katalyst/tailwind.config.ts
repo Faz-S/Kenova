@@ -7,6 +7,16 @@ const config: Config = {
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
+    screens: {
+      
+      'xs': '425px',  // Very small devices
+      'sm': '640px',
+      'md': '768px',
+      'lg': '797px',  // Specific breakpoint for navbar
+      'xl': '1024px',
+      '2xl': '1280px',
+      'navbar-mobile': '883px',  // Custom breakpoint for navbar menu icon
+    },
     extend: {
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
@@ -19,6 +29,12 @@ const config: Config = {
       },
       fontFamily: {
         'courier-prime': ['var(--font-courier-prime)', 'monospace'],
+      },
+      fontSize: {
+        'xs-tiny': '0.6rem',  // Extra small font size
+      },
+      spacing: {
+        'xs-tight': '0.25rem',  // Tighter spacing for very small devices
       },
     },
   },

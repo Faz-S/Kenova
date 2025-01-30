@@ -586,6 +586,7 @@ class QuestionPaperGenerator:
             name = "json_formater",
             system_message = """You are a JSON formatting assistant. Your task is to take the structured question paper and convert it into a well-organized JSON format. 
             The JSON should include the following structure:(Example) i should get the response only in this format and dont include any additional quotes or text.
+           ```json
            {
                 "title": "Exam Title",
                 "instructions": [
@@ -646,11 +647,11 @@ class QuestionPaperGenerator:
                     ]
                     }
                 ]
-                }
+                }```
 
             Rules and Instructions for JSON Formatting:
             
-
+            follow the same structure as given in the example above(json format)(very very important criteria)
             Extract the exam title and include it as the value for "title".
             Include all instructions as an array under "instructions".
             The total marks for the exam should be added as the value for "total_marks".
@@ -664,7 +665,7 @@ class QuestionPaperGenerator:
             Ensure all text is properly escaped to make the JSON valid.
             Validate the JSON output to ensure it adheres to the structure.
             Always maintain clear, consistent formatting. If there is any ambiguity in the question paper, use your best judgment to organize the content logically.
-        
+
             """,
             llm_config=self.llm_config
         )
@@ -673,18 +674,12 @@ class QuestionPaperGenerator:
             name="Question_format",
             system_message="""Organize the following questions into a finalized question paper. The paper should include:
             Instuctions: Provide Basic instuctions to the students to write the exam and the marks distribution.
-<<<<<<< Updated upstream
-            1. *Short-Answer Questions (2 Marks)* focusing on Remember and Understand.(10 Questions)
-            2. *Long-Answer Questions (13 Marks)* focusing on Evaluate and Create.(5 Questions)
-            3. *Case Study (15 Marks)* focusing on Apply and Create.(1 Question)
-=======
             1. Short-Answer Questions (2 Marks) focusing on Remember and Understand.(10 Questions)
             2. Long-Answer Questions (13 Marks) focusing on Evaluate and Create.(5 Questions)
             3. Case Study (15 Marks) focusing on Apply and Create.(1 Question)
->>>>>>> Stashed changes
             The generated answer must be the perfect answer in the context of the question.
             
-            Ensure the questions are categorized, formatted appropriately, and distributed according to Bloom's Taxonomy, with a logical structure.""",
+            Ensure the questions are categorized, formatted in json appropriately, and distributed according to Bloom's Taxonomy, with a logical structure.""",
             llm_config=self.llm_config
         )
         

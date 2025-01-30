@@ -11,7 +11,7 @@ export default function ChatMessage({ content, isUser, isLoading }: ChatMessageP
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
       <div
         className={`max-w-[70%] p-4 rounded-lg border-2 border-black
-                   ${isUser ? 'bg-red-500 text-white' : 'bg-white'}`}
+                   ${isUser ? 'bg-[#FFB800] ' : 'bg-[#FFB800]'}`}
       >
         {isLoading ? (
           <div className="flex items-center space-x-2">

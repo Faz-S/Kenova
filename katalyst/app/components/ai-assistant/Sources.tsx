@@ -23,9 +23,9 @@ export default function Sources() {
   };
 
   return (
-    <div className="border-2 border-black h-[calc(90vh-80px)]">
+    <div className="border-2 border-black lg:h-[calc(90vh-80px)] h-auto">
       <div className="p-4">
-        <h2 className="text-lg font-bold mb-4">Sources</h2>
+        <h2 className="text-base sm:text-lg font-bold mb-4">Sources</h2>
         
         {/* Display uploaded files */}
         <div className="space-y-4 mb-6">

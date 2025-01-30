@@ -1,10 +1,10 @@
 'use client';
 
-
 import FileUploadGreen from '../components/smart-notes/FileUploadGreen';
 import NotesDisplay from '../components/smart-notes/NotesDisplay';
 import PageTemplate from '../components/PageTemplate';
 import { SmartNotesProvider, useSmartNotes } from '../contexts/SmartNotesContext';
+import ScanningAnimation from '../components/ScanningAnimation';
 
 function SmartNotesContent() {
   const { sources, notes, isProcessing, addSource, removeSource, setNotes, setIsProcessing } = useSmartNotes();
@@ -93,13 +93,13 @@ function SmartNotesContent() {
   };
 
   return (
-    <div className="pt-20 px-4 md:px-8">
-      <div className="flex gap-6">
+    <div className="pt-20 lg:pt-[6.3rem] px-4 md:px-8 text-sm md:text-base lg:text-lg" style={{ fontFamily: 'var(--font-courier-prime)' }}>
+      <div className="grid grid-cols-1 lg:grid-cols-[288px_1fr] gap-6 max-w-[1400px] mx-auto">
         {/* Left Section - Sources */}
-        <div className="w-72">
-          <div className="border-2 border-black h-[calc(90vh-80px)]">
-            <div className="p-4">
-              <h2 className="text-lg font-bold mb-4">Sources</h2>
+        <div className="bg-[#E4FFE1]">
+          <div className="border-2 border-black lg:h-[calc(90vh-80px)] h-auto">
+            <div className="p-4 ">
+              <h1 className="text-base sm:text-lg font-bold mb-4">Sources</h1>
               <FileUploadGreen
                 onFilesSelected={handleFilesSelected}
                 onFileRemove={removeSource}
@@ -113,21 +113,21 @@ function SmartNotesContent() {
         </div>
 
         {/* Right Section - Smart Notes */}
-        <div className="flex-1">
+        <div className="">
           <div className="border-2 border-black h-[calc(90vh-80px)] bg-white">
-            <div className="p-6 h-full flex flex-col">
-              <h2 className="text-lg font-bold mb-4">Smart Notes</h2>
+            <div className="p-6 h-full flex flex-col bg-[#E4FFE1]">
+              <h1 className="text-base sm:text-lg font-bold mb-4">Smart Notes</h1>
               <div className="flex-1 overflow-y-auto">
                 {isProcessing ? (
                   <div className="flex items-center justify-center h-full">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
+                    <ScanningAnimation />
                   </div>
                 ) : notes ? (
                   <div className="bg-white rounded-lg h-full">
                     <NotesDisplay content={notes} />
                   </div>
                 ) : (
-                  <div className="flex items-center justify-center h-full text-gray-500">
+                  <div className="flex items-center justify-center h-full text-sm sm:text-base text-gray-500">
                     Upload a file to generate smart notes
                   </div>
                 )}

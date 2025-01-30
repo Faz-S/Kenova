@@ -85,7 +85,7 @@ export default function FileUploadGreen({
         <button
           onClick={() => fileInputRef.current?.click()}
           disabled={disabled}
-          className={`w-full py-2 px-4 border-2 border-black bg-white 
+          className={`w-full py-2 px-4 border-2 border-black bg-white
                    transition-all duration-200 
                    ${!disabled ? 'hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0_0_#000] hover:bg-green-50' : ''}
                    shadow-[4px_4px_0_0_#000] 

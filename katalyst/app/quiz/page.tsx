@@ -58,8 +58,7 @@ const QuizPage = () => {
       }
 
       const data = await response.json();
-      let datas = data.final_output;
-      
+      let datas = data.response;
       if (datas && typeof datas === 'string') {
         datas = datas.trim().slice(7, -3);
       }
@@ -79,21 +78,10 @@ const QuizPage = () => {
             typeof q === 'object' &&
             'question' in q &&
             'options' in q &&
-            typeof q.options === 'object'
+            'correct_answer' in q
           )) {
-        console.log('Valid quiz format:', parsedData);
         setQuestions(parsedData);
       } else {
-        console.error('Invalid quiz format:', {
-          isArray: Array.isArray(parsedData),
-          hasItems: parsedData?.length > 0,
-          itemsValid: parsedData?.every((q: any) => 
-            typeof q === 'object' &&
-            'question' in q &&
-            'options' in q &&
-            typeof q.options === 'object'
-          )
-        });
         throw new Error('Invalid quiz format');
       }
     } catch (error) {
@@ -104,48 +92,26 @@ const QuizPage = () => {
     }
   };
 
-  const handleAnswerSubmit = async () => {
-    if (!selectedAnswer) {
-      alert('Please select an answer before submitting');
-      return;
-    }
-
-    try {
-      const response = await fetch('http://127.0.0.1:5002/submit_answer', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          question: questions[currentQuestionIndex].question,
-          answer: selectedAnswer,
-          context: file ? await file.text() : ''
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to submit answer');
-      }
-
-      const data = await response.json();
-      if (data.status === 'success') {
-        setFeedback(data.response);
-        setAnswers(prev => [...prev, {
-          questionId: currentQuestionIndex,
-          answer: selectedAnswer,
-          feedback: data.response
-        }]);
-      } else {
-        throw new Error(data.message || 'Failed to evaluate answer');
-      }
-    } catch (error) {
-      console.error('Error:', error);
-      alert('Failed to submit answer. Please try again.');
-    }
-  };
-
   const handleOptionSelect = (option: string) => {
     setSelectedAnswer(option);
+    
+    // Local evaluation of the answer
+    const currentQuestion = questions[currentQuestionIndex];
+    const isCorrect = option === currentQuestion.correct_answer;
+    
+    // Generate local feedback
+    const feedback = isCorrect 
+      ? "Correct! " + (currentQuestion.explanation || "Great job!")
+      : "Incorrect. " + (currentQuestion.explanation || "The selected answer is not correct.");
+    
+    setFeedback(feedback);
+    
+    // Store the answer
+    setAnswers(prev => [...prev, {
+      questionId: currentQuestionIndex,
+      answer: option,
+      feedback: feedback
+    }]);
   };
 
   const handleNextQuestion = () => {
@@ -167,20 +133,19 @@ const QuizPage = () => {
   return (
     <div className="min-h-screen bg-white">
       <Navbar />
-      <main className="pt-20 px-4 md:px-8" style={{ fontFamily: 'var(--font-courier-prime)' }}>
-        <div className="max-w-[1500px] mx-auto">
-          <div className="grid grid-cols-[300px_1fr] gap-4">
+      <main className="pt-20 lg:pt-[6.3rem] px-4 md:px-8 text-sm md:text-base lg:text-lg " style={{ fontFamily: 'var(--font-courier-prime)' }}>
+        <div className="max-w-[1500px] mx-auto ">
+          <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-4 max-w-[1400px] mx-auto ">
             {/* Left Sidebar */}
-            <div className="border-2 border-black bg-white p-4">
-              <h2 className="text-xl font-bold mb-4">Sources</h2>
+            <div className="border-2 border-black bg-[#FFE3E0] p-4">
+              <h2 className="text-base sm:text-lg font-bold mb-4">Sources</h2>
               <input
                 type="file"
                 accept=".pdf"
                 className="hidden"
                 ref={fileInputRef}
                 onChange={handleFileUpload}
-              />
-              
+              /> 
               <button 
                   onClick={handleAddSource}
                   className="mt-4 w-full flex items-center justify-center gap-2 py-2 px-4 bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all font-medium"
@@ -190,8 +155,8 @@ const QuizPage = () => {
               </button>
               {file && (
                 <>
-                  <div className="mt-4 p-3 border-2 border-black">
-                    <p className="text-sm truncate">{file.name}</p>
+                  <div className="mt-4 p-3 border-2 border-black bg-[#FF6958]">
+                    <p className="text-sm truncate ">{file.name}</p>
                   </div>
                   <button
                     onClick={handleGenerate}
@@ -205,7 +170,7 @@ const QuizPage = () => {
             </div>
 
             {/* Main Content */}
-            <div className="border-2 border-black bg-white p-4 min-h-[600px] flex items-center justify-center">
+            <div className="border-2 border-black bg-[#FFE3E0] p-4 min-h-[600px] flex items-center justify-center">
               {isLoading ? (
                 <p className="text-lg">Generating questions...</p>
               ) : !file ? (
@@ -216,53 +181,47 @@ const QuizPage = () => {
                     <button 
                       onClick={handlePreviousQuestion}
                       disabled={currentQuestionIndex === 0}
-                      className="px-4 py-2 border-2 border-black disabled:opacity-50"
+                      className="px-4 py-2 border-2 border-black disabled:opacity-50 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all"
                     >
                       Previous
                     </button>
-                    <span>Question {currentQuestionIndex + 1} of {questions.length}</span>
+                    <span className="text-base sm:text-lg">Question {currentQuestionIndex + 1} of {questions.length}</span>
                     <button 
                       onClick={handleNextQuestion}
                       disabled={currentQuestionIndex === questions.length - 1}
-                      className="px-4 py-2 border-2 border-black disabled:opacity-50"
+                      className="px-4 py-2 border-2 border-black disabled:opacity-50 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all"
                     >
                       Next
                     </button>
                   </div>
 
-                  <div className="p-4 border-2 border-black">
-                    <p className="font-medium mb-3">{questions[currentQuestionIndex].question}</p>
-                    <div className="grid grid-cols-2 gap-3">
+                  <div className="p-4 border-2 border-black bg-[#FF6958]">
+                    <p className="font-medium text-base sm:text-lg mb-3 ">{questions[currentQuestionIndex].question}</p>
+                    <div className="grid grid-cols-2 gap-3 ">
                       {Object.entries(questions[currentQuestionIndex].options).map(([key, value]) => (
                         <button
                           key={key}
                           onClick={() => handleOptionSelect(key)}
                           className={`p-2 border-2 border-black transition-all ${
-                            selectedAnswer === key ? 'bg-black text-white' : 'hover:bg-gray-100'
+                            selectedAnswer === key 
+                              ? (selectedAnswer === questions[currentQuestionIndex].correct_answer 
+                                  ? 'bg-green-500 text-white' 
+                                  : 'bg-red-500 text-white') 
+                              : 'hover:bg-gray-100 bg-white'
                           }`}
                         >
-                          {key}: {value}
+                          <span className="text-xs sm:text-sm">{key}: {value}</span>
                         </button>
                       ))}
                     </div>
                   </div>
 
-                  <div className="flex flex-col gap-4">
-                    <button
-                      onClick={handleAnswerSubmit}
-                      disabled={!selectedAnswer}
-                      className="w-full py-2 px-4 bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all font-medium disabled:opacity-50"
-                    >
-                      Submit Answer
-                    </button>
-
-                    {feedback && (
-                      <div className="p-4 border-2 border-black bg-gray-50">
-                        <h3 className="font-bold mb-2">Feedback:</h3>
-                        <p className="whitespace-pre-wrap">{feedback}</p>
-                      </div>
-                    )}
-                  </div>
+                  {feedback && (
+                    <div className="p-4 border-2 border-black bg-gray-50 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px]  transition-all">
+                      <h3 className="font-bold text-base sm:text-lg mb-2">Feedback:</h3>
+                      <p className="whitespace-pre-wrap text-sm sm:text-base">{feedback}</p>
+                    </div>
+                  )}
                 </div>
               ) : null}
             </div>

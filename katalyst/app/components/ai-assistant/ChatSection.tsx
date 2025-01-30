@@ -111,6 +111,7 @@ export default function ChatSection() {
         <div className="flex flex-col space-y-4">
           {messages.map(message => (
             <ChatMessage
+            
               key={message.id}
               content={message.content}
               isUser={message.isUser}
@@ -142,7 +143,8 @@ export default function ChatSection() {
                      hover:shadow-[6px_6px_0_0_#000]
                      disabled:opacity-50 disabled:cursor-not-allowed
                      disabled:hover:translate-x-0 disabled:hover:translate-y-0
-                     disabled:hover:shadow-[4px_4px_0_0_#000]"
+                     disabled:hover:shadow-[4px_4px_0_0_#000]
+                     "
           >
             <Send className="w-5 h-5" />
           </button>
