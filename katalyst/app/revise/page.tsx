@@ -78,7 +78,7 @@ function ReviseContent() {
     <div className="pt-20 lg:pt-[6.3rem] px-4 md:px-8 text-sm md:text-base lg:text-lg" style={{ fontFamily: 'var(--font-courier-prime)' }} >
       <div className="grid grid-cols-1 lg:grid-cols-[288px_1fr] gap-6 max-w-[1400px] mx-auto">
         {/* Left Section - Sources */}
-        <div className="">
+        <div className="bg-[#FFCCA8]">
           <div className="border-2 border-black lg:h-[calc(90vh-80px)] h-auto">
             <div className="p-4 ">
               <h1 className="text-base sm:text-lg font-bold mb-4">Sources</h1>
@@ -106,8 +106,8 @@ function ReviseContent() {
         </div>
 
         {/* Right Section - Revision */}
-        <div className="">
-          <div className="border-2 border-black h-[calc(90vh-80px)] bg-white">
+        <div className="bg-[#FFCCA8]">
+          <div className="border-2 bg-[#FFCCA8] border-black h-[calc(90vh-80px)] bg-white">
             <div className="p-6 h-full flex flex-col">
               <h1 className="text-base sm:text-lg font-bold mb-4">Revision</h1>
               <div className="flex-1 overflow-y-auto">

@@ -27,11 +27,13 @@ export default function Navbar({
   const defaultNavItems: NavItem[] = [
     { label: 'Home', href: '/' },
     { label: 'Question Paper', href: '/question-paper' },
-    { label: 'Flashcards', href: '/flashcards' },
+    
     { label: 'Quiz', href: '/quiz' },
     { label: 'Smart Notes', href: '/smart-notes' },
     { label: 'AI Assistant', href: '/ai-assistant' },
     { label: 'Revise', href: '/revise' },
+    { label: 'Youtube', href: '/youtube' },
+    { label: 'Virtual Feed', href: '/virtual' },
   ];
 
   // Use custom nav items if provided, otherwise use default
@@ -70,6 +72,10 @@ export default function Navbar({
             ? 'bg-[#E4FFE1]'
             :pathname === '/ai-assistant'
               ? 'bg-[#FFF7DF]'
+              :pathname === '/revise'
+              ? 'bg-[#FFCCA8]'
+              : pathname === '/youtube'
+              ? 'bg-[#C5F8FF]'
               : 'bg-white'
     } border-b-2 border-l-2 border-r-2 border-t-2 border-black  ${
       isBlurred ? 'blur-sm pointer-events-none cursor-not-allowed' : ''
@@ -92,6 +98,10 @@ export default function Navbar({
                           ? 'bg-[#4BA943] text-white'
                           :item.href === '/ai-assistant'
                           ? 'bg-[#FFB800] text-white'
+                          : item.href === '/revise'
+                          ? 'bg-[#FF9447] text-white'
+                          : item.href === '/youtube'
+                          ? 'bg-[#357abd] text-white'
                           : 'bg-[#FFB800]')
                     : 'hover:bg-[#FFF]'
                 } transition-colors text-xs sm:text-sm lg:text-base`}

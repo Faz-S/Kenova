@@ -30,11 +30,13 @@ export default function QuestionPaper() {
   const [navItems, setNavItems] = useState<{ label: string; href: string }[]>([
     { label: 'Home', href: '/' },
     { label: 'Question Paper', href: '/question-paper' },
-    { label: 'Flashcards', href: '/flashcards' },
+    
     { label: 'Quiz', href: '/quiz' },
     { label: 'Smart Notes', href: '/smart-notes' },
     { label: 'AI Assistant', href: '/ai-assistant' },
     { label: 'Revise', href: '/revise' },
+    { label: 'Youtube', href: '/youtube' },
+    { label: 'Virtual Feed', href: '/virtual' },
   ]);
   const [minimalNavMode, setMinimalNavMode] = useState(false);
   const [showCustomNavbar, setShowCustomNavbar] = useState(false);
